@@ -2,7 +2,6 @@ import mesa
 import base_model
 import random
 
-
 class Person(mesa.Agent):
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model)
@@ -11,9 +10,22 @@ class Person(mesa.Agent):
         self.pos = pos
 
     def move(self):
-        # Get neighbours (Moore neighbourhood) and randomly select one
+        # Get neighbours (Moore neighbourhood) and randomly select one that is empty
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
-        selected_neighbour = random.choice(neighbours)
+        empty_neighbours = []
+
+        for neighbour in neighbours:
+            contents = self.model.grid.get_cell_list_contents([neighbour])
+            if len(contents) == 0:
+                empty_neighbours.append(neighbour)
+
+        if len(empty_neighbours) != 0:
+            selected_neighbour = random.choice(empty_neighbours)
+
+        else:
+            # No movement if there are no empty neighbours
+            return
+        
         # Move agent
         self.model.grid.move_agent(self, selected_neighbour)
 
