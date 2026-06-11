@@ -13,6 +13,7 @@ class Person(mesa.Agent):
         # Get neighbours (Moore neighbourhood) and randomly select one that is empty
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
 
+        # Check for empty neighbours
         empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
@@ -33,6 +34,7 @@ class Person(mesa.Agent):
         # Get neighbours (Moore neighbourhood)
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
 
+        # Check for empty neighbours
         empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
@@ -47,6 +49,8 @@ class Person(mesa.Agent):
             # Type of agent
             agent_type = self.__class__.__name__
 
+            # Biased moevement for thieves
+            # Move to neighbour with most potential victims as neighbours (Moore neighbourhood)
             if agent_type == "Thief":
                 n_passerby_neighbour = []
                 for neighbour in empty_neighbours:
@@ -56,6 +60,7 @@ class Person(mesa.Agent):
                         neighbours_of_neighbour = self.model.grid.get_neighborhood(neighbour, True)
                         passerby_count = 0
 
+                        # For each neighbour of the neighbour, count the number of potential victims
                         for n in neighbours_of_neighbour:
                             contents = self.model.grid.get_cell_list_contents([n])
 
@@ -85,6 +90,14 @@ class Person(mesa.Agent):
                 selected_neighbour = random.choice(empty_neighbours)
 
             self.model.grid.move_agent(self, selected_neighbour)
+
+    def apparent_wealth(self):
+        # Biased movement of agents when there is apparent wealth in the model
+        pass
+
+    def perceived_police(self):
+        # Biased movement of thieves when there is perceived police presence in the model
+        pass
 
 if __name__ == "__main__":
     # Test the Person class with a single agent at (5,5)
