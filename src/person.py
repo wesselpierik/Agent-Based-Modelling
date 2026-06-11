@@ -12,8 +12,8 @@ class Person(mesa.Agent):
     def move(self):
         # Get neighbours (Moore neighbourhood) and randomly select one that is empty
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
-        empty_neighbours = []
 
+        empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
             if len(contents) == 0:
@@ -30,32 +30,61 @@ class Person(mesa.Agent):
         self.model.grid.move_agent(self, selected_neighbour)
 
     def biased_move(self):
+        # Get neighbours (Moore neighbourhood)
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
 
-        # Type of agent
-        agent_type = self.__class__.__name__
+        empty_neighbours = []
+        for neighbour in neighbours:
+            contents = self.model.grid.get_cell_list_contents([neighbour])
+            if len(contents) == 0:
+                empty_neighbours.append(neighbour)
 
-        if agent_type == "Thief":
-            nieghbours_with_passerby = []
-
-            for neighbour in neighbours:
-                contents = self.model.grid.get_cell_list_contents([neighbour])
-
-                for content in contents:
-                    if content.__class__.__name__ == "Victim":
-                        nieghbours_with_passerby.append(neighbour)
-                
-
-            if len(nieghbours_with_passerby) > 0:
-                selected_neighbour = random.choice(nieghbours_with_passerby)
-            
-            else:
-                selected_neighbour = random.choice(neighbours)
-
+        if len(empty_neighbours) == 0:
+            # No movement if there are no empty neighbours
+            return
+        
         else:
-            selected_neighbour = random.choice(neighbours)
+            # Type of agent
+            agent_type = self.__class__.__name__
 
-        self.model.grid.move_agent(self, selected_neighbour)
+            if agent_type == "Thief":
+                n_passerby_neighbour = []
+                for neighbour in empty_neighbours:
+                    contents = self.model.grid.get_cell_list_contents([neighbour])
+                    
+                    if len(contents) == 0:
+                        neighbours_of_neighbour = self.model.grid.get_neighborhood(neighbour, True)
+                        passerby_count = 0
+
+                        for n in neighbours_of_neighbour:
+                            contents = self.model.grid.get_cell_list_contents([n])
+
+                            for content in contents:
+                                if content.__class__.__name__ == "Victim":
+                                    passerby_count += 1
+
+                        n_passerby_neighbour.append((neighbour, passerby_count))
+
+                    else:
+                        # Skip neighhbour if it is not empty
+                        continue
+
+                # Select neighbour with most potential victims
+                if len(n_passerby_neighbour) > 0:
+                    values = [x[1] for x in n_passerby_neighbour]
+                    max_value = max(values)
+
+                    max_indices = []
+                    for index, value in enumerate(values):
+                        if value == max_value:
+                            max_indices.append(index)
+
+                    selected_neighbour = n_passerby_neighbour[random.choice(max_indices)][0]
+
+            else:
+                selected_neighbour = random.choice(empty_neighbours)
+
+            self.model.grid.move_agent(self, selected_neighbour)
 
 if __name__ == "__main__":
     # Test the Person class with a single agent at (5,5)
