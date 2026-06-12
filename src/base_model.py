@@ -1,5 +1,7 @@
 import mesa
 import mesa.space
+from mesa.time import RandomActivation
+from mesa.datacollection import DataCollector
 from victim import Victim
 from police import Police
 from thief import Thief
@@ -11,11 +13,21 @@ class BaseModel(mesa.Model):
 
         self.height = height
         self.width = width
-        self.n_thieves = 5
-        self.n_victims = 100
+        self.n_thieves = 50
+        self.n_victims = 1000
         self.n_police = 5
 
+        self.schedule_Victim = RandomActivation(self)
+        self.schedule_Thief = RandomActivation(self)
+        self.schedule_Police = RandomActivation(self)
+
+        self.schedule = RandomActivation(self)
+
         self.grid = mesa.space.MultiGrid(width, height, True)
+
+        self.datacollector = DataCollector(
+             {"Attempts": lambda m: sum(agent.attempts for agent in m.agents if isinstance(agent, Thief)),
+              "Succesful": lambda m: sum(agent.succesful_steals for agent in m.agents if isinstance(agent, Thief))})
 
         self.n_agents = 0
         self.agents = []
@@ -24,6 +36,9 @@ class BaseModel(mesa.Model):
         self.init_population(Thief, self.n_thieves)
         self.init_population(Police, self.n_police)
         self.init_population(Victim, self.n_victims)
+
+        self.running=True
+        self.datacollector.collect(self)
 
     def add_agent(self, agent_type, pos):
         # Create new agent
@@ -38,12 +53,19 @@ class BaseModel(mesa.Model):
         # Update the household value
         self.n_agents = len(self.agents)
 
+        self.schedule.add(new_agent)
+        getattr(self, f'schedule_{agent_type.__name__}').add(new_agent)
+
     def remove_agent(self, agent):
         # Remove from the grid
         self.grid.remove_agent(agent)
 
         # Remove agent from the model
         self.agents.remove(agent)
+
+        self.schedule.remove(agent)
+
+        getattr(self, f'schedule_{type(agent).__name__}').remove(agent)
 
         # Update household values
         self.n_agents = len(self.agents)
@@ -59,23 +81,20 @@ class BaseModel(mesa.Model):
         '''
         Method that steps every agent. 
         '''
-        for agent in list(self.agents):
-            agent.step()
+        self.schedule_Police.step()
+        self.schedule_Thief.step()
+        self.schedule_Victim.step()
+
+        self.schedule.steps += 1
+        self.schedule.time += 1
+        self.datacollector.collect(self)
+
+    def run_model(self, step_count=200):
+        for i in range(step_count):
+            self.step()
 
 if __name__ == "__main__":
     model = BaseModel()
-    # positions = []
-    # for _ in range(12):
-    #     i = random.randint(0, 10)
-    #     j = random.randint(0, 10)
-    #     if (i,j) not in positions:
-    #         positions.append((i,j)) 
-    # for i in range(len(positions)-2):
-    #     model.add_agent(Victim, positions[i])
-    # model.add_agent(Police, positions[10])
-    # model.add_agent(Thief, positions[-1])
-    iterations = 50
-    for _ in range(iterations):
-        model.step()
+
 
 

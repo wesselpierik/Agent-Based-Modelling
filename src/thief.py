@@ -11,6 +11,7 @@ class Thief(Person):
         super().__init__(unique_id, model, pos)
         self.riskyness = random.uniform(0,1)
         self.succesful_steals = 0
+        self.attempts = 0
 
     def step(self):
         self.move()
@@ -35,10 +36,11 @@ class Thief(Person):
 
         grid_size = self.model.grid.width * self.model.grid.height
         amount_of_people = self.model.n_agents # Total agents in simulation
-        busyness_parameter = amount_of_people / grid_size # as it gets busier, gets closer to 1 
+        busyness_parameter = amount_of_people / grid_size # as it gets busier, gets closer to 1 # TODO: local busyness
 
         prob_caught = ((1-police_parameter)+(1-busyness_parameter))/2
         if self.riskyness > prob_caught:
+            self.attempts += 1
             if random.random() < prob_caught:
                 # TODO implement jailtime ?
                 self.riskyness = max(0, self.riskyness-0.1)
