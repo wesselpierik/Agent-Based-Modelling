@@ -5,16 +5,25 @@ from police import Police
 from thief import Thief
 import random
 
-
-
 class BaseModel(mesa.Model):
     def __init__(self, width=10, height=10):
         super().__init__()
 
+        self.height = height
+        self.width = width
+        self.n_thieves = 1
+        self.n_victims = 10
+        self.n_police = 1
+
         self.grid = mesa.space.MultiGrid(width, height, True)
 
-        self.n_agents = 0
+        self.n_agents = self.n_thieves + self.n_victims + self.n_police
         self.agents = []
+
+        # Create initial population of agents
+        self.init_population(Thief, self.n_thieves)
+        self.init_population(Victim, self.n_victims)
+        self.init_population(Police, self.n_police)
 
     def add_agent(self, agent_type, pos):
         # Create new agent
@@ -39,6 +48,13 @@ class BaseModel(mesa.Model):
         # Update household values
         self.n_agents = len(self.agents)
 
+    def init_population(self, agent_type, n):
+        for _ in range(n):
+            i = random.randint(0, self.grid.width)
+            j = random.randint(0, self.grid.height)
+        
+            self.add_agent(agent_type, (i, j))
+
     def step(self):
         '''
         Method that steps every agent. 
@@ -48,16 +64,16 @@ class BaseModel(mesa.Model):
 
 if __name__ == "__main__":
     model = BaseModel()
-    positions = []
-    for _ in range(12):
-        i = random.randint(0, 10)
-        j = random.randint(0, 10)
-        if (i,j) not in positions:
-            positions.append((i,j)) 
-    for i in range(len(positions)-2):
-        model.add_agent(Victim, positions[i])
-    model.add_agent(Police, positions[10])
-    model.add_agent(Thief, positions[-1])
+    # positions = []
+    # for _ in range(12):
+    #     i = random.randint(0, 10)
+    #     j = random.randint(0, 10)
+    #     if (i,j) not in positions:
+    #         positions.append((i,j)) 
+    # for i in range(len(positions)-2):
+    #     model.add_agent(Victim, positions[i])
+    # model.add_agent(Police, positions[10])
+    # model.add_agent(Thief, positions[-1])
     iterations = 50
     for _ in range(iterations):
         model.step()
