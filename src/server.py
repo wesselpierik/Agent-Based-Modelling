@@ -25,7 +25,7 @@ def agent_portrayal(agent):
     return portrayal
 
 # Create a grid of 10 by 10 cells, and display it as 500 by 500 pixels
-grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
+grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
 
 # # Create a dynamic linegraph
 # chart = ChartModule([{"Label": "Thieves",
@@ -42,6 +42,6 @@ server = ModularServer(BaseModel,
                        "BaseModel",
                        {})
 
-server.port = 9023
+server.port = 9026
 
 server.launch()

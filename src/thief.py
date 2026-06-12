@@ -21,12 +21,17 @@ class Thief(Person):
             best_victim = max(potential_victims, key=lambda v: (1 - v.attentiveness) + v.wealth)
             if best_victim.attentiveness > 0.9:
                 return # no good options, move on
+        else:
+            return
         
         # Search for police in randius 3
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=3)
         police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
+
         if police_nearby:
             police_parameter = 1 / (1+len(police_nearby)) # gets smaller with more police
+        else:
+            police_parameter = 1
 
         grid_size = self.model.grid.width * self.model.grid.height
         amount_of_people = self.model.n_agents # Total agents in simulation

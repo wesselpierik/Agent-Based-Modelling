@@ -6,14 +6,14 @@ from thief import Thief
 import random
 
 class BaseModel(mesa.Model):
-    def __init__(self, width=10, height=10):
+    def __init__(self, width=100, height=100):
         super().__init__()
 
         self.height = height
         self.width = width
-        self.n_thieves = 1
-        self.n_victims = 10
-        self.n_police = 1
+        self.n_thieves = 5
+        self.n_victims = 100
+        self.n_police = 5
 
         self.grid = mesa.space.MultiGrid(width, height, True)
 
@@ -22,8 +22,8 @@ class BaseModel(mesa.Model):
 
         # Create initial population of agents
         self.init_population(Thief, self.n_thieves)
-        self.init_population(Victim, self.n_victims)
         self.init_population(Police, self.n_police)
+        self.init_population(Victim, self.n_victims)
 
     def add_agent(self, agent_type, pos):
         # Create new agent

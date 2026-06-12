@@ -102,8 +102,8 @@ class Person(mesa.Agent):
 if __name__ == "__main__":
     # Test the Person class with a single agent at (5,5)
     model = base_model.BaseModel()
-    model.add_agent(Person, (5, 5))
-    person = model.agents[0]
-    print(person.pos)
-    person.move()
-    print(person.pos)
+    # model.add_agent(Person, (5, 5))
+    # person = model.agents[0]
+    # print(person.pos)
+    # person.move()
+    # print(person.pos)
