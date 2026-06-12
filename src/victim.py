@@ -10,6 +10,9 @@ class Victim(Person):
         super().__init__(unique_id, model)
         self.attentiveness = np.random.uniform()
         self.wealth = np.random.normal()
+    
+    def step(self):
+        self.move()
 
 
 if __name__ == "__main__":
