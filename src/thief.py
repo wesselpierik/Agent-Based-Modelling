@@ -13,7 +13,8 @@ class Thief(Person):
         self.succesful_steals = 0
 
     def step(self):
-        # TODO first move a step using person class
+        self.move()
+        
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
         potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
         if potential_victims:
