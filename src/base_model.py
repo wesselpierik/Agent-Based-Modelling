@@ -17,7 +17,7 @@ class BaseModel(mesa.Model):
 
         self.grid = mesa.space.MultiGrid(width, height, True)
 
-        self.n_agents = self.n_thieves + self.n_victims + self.n_police
+        self.n_agents = 0
         self.agents = []
 
         # Create initial population of agents
@@ -33,7 +33,7 @@ class BaseModel(mesa.Model):
         self.grid.place_agent(new_agent, pos)
 
         # Add the agent to the model
-        self.agents += [new_agent]
+        self.agents.add(new_agent)
 
         # Update the household value
         self.n_agents = len(self.agents)

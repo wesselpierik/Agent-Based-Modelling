@@ -29,7 +29,7 @@ class Thief(Person):
             police_parameter = 1 / (1+len(police_nearby)) # gets smaller with more police
 
         grid_size = self.model.grid.width * self.model.grid.height
-        amount_of_people = len(self.model.schedule.agents) # Total agents in simulation
+        amount_of_people = self.model.n_agents # Total agents in simulation
         busyness_parameter = amount_of_people / grid_size # as it gets busier, gets closer to 1 
 
         prob_caught = ((1-police_parameter)+(1-busyness_parameter))/2
