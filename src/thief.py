@@ -42,11 +42,12 @@ class Thief(Person):
         if self.riskyness > prob_caught:
             self.attempts += 1
             if random.random() < prob_caught:
-                # TODO implement jailtime ?
                 self.riskyness = max(0, self.riskyness-0.1)
             else:
+                # succesful pickpocketing event
                 self.succesful_steals += 1
                 best_victim.attentiveness = min(1.0, best_victim.attentiveness + 0.1)
+                best_victim.robbed_timestamp = self.model.schedule.time 
                 # TODO: wealth of victim changes??
 
 

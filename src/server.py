@@ -34,12 +34,18 @@ chart = ChartModule([{"Label": "Attempts",
                       "Color": "green"},],
                     data_collector_name='datacollector')
 
+chart2 = ChartModule([{"Label": "Avg Attentiveness",
+                       "Color": "brown"},
+                      {"Label": "Avg Riskyness",
+                       "Color": "blue"},],
+                    data_collector_name='datacollector')
+
 # Create the server, and pass the grid and the graph
 server = ModularServer(BaseModel,
-                       [grid,chart],
+                       [grid,chart, chart2],
                        "BaseModel",
                        {})
 
-server.port = 9027
+server.port = 9031
 
 server.launch()
