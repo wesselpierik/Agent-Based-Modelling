@@ -52,8 +52,8 @@ class BaseModel(mesa.Model):
         for _ in range(n):
             i = random.randint(0, self.grid.width)
             j = random.randint(0, self.grid.height)
-        
-            self.add_agent(agent_type, (i, j))
+            if (i,j) in self.model.grid.empties:
+                self.add_agent(agent_type, (i, j))
 
     def step(self):
         '''
