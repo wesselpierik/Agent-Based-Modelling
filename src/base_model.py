@@ -1,5 +1,10 @@
 import mesa
 import mesa.space
+from victim import Victim
+from police import Police
+from thief import Thief
+import random
+
 
 
 class BaseModel(mesa.Model):
@@ -34,6 +39,27 @@ class BaseModel(mesa.Model):
         # Update household values
         self.n_agents = len(self.agents)
 
+    def step(self):
+        '''
+        Method that steps every agent. 
+        '''
+        for agent in list(self.agents):
+            agent.step()
 
 if __name__ == "__main__":
     model = BaseModel()
+    positions = []
+    for _ in range(12):
+        i = random.randint(0, 10)
+        j = random.randint(0, 10)
+        if (i,j) not in positions:
+            positions.append((i,j)) 
+    for i in range(len(positions)-2):
+        model.add_agent(Victim, positions[i])
+    model.add_agent(Police, positions[10])
+    model.add_agent(Thief, positions[-1])
+    iterations = 50
+    for _ in range(iterations):
+        model.step()
+
+
