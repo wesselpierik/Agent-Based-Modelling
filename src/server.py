@@ -46,6 +46,6 @@ server = ModularServer(BaseModel,
                        "BaseModel",
                        {})
 
-server.port = 9031
+server.port = 9034
 
 server.launch()

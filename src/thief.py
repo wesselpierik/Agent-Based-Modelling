@@ -19,7 +19,7 @@ class Thief(Person):
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
         potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
         if potential_victims:
-            best_victim = max(potential_victims, key=lambda v: (1 - v.attentiveness) + v.wealth)
+            best_victim = max(potential_victims, key=lambda v: -v.attentiveness + v.wealth)
             if best_victim.attentiveness > 0.9:
                 return # no good options, move on
         else:
@@ -48,6 +48,7 @@ class Thief(Person):
                 self.succesful_steals += 1
                 best_victim.attentiveness = min(1.0, best_victim.attentiveness + 0.1)
                 best_victim.robbed_timestamp = self.model.schedule.time 
+                self.riskyness = min(1, self.riskyness +0.05)
                 # TODO: wealth of victim changes??
 
 

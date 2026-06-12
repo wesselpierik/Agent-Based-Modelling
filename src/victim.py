@@ -14,9 +14,9 @@ class Victim(Person):
     
     def step(self):
         self.move()
-        if self.model.schedule.time - self.robbed_timestamp > 20:
+        if self.model.schedule.time - self.robbed_timestamp > 50:
             # potential victim gets less attentive after not being robbed for some time
-            self.attentiveness = max(0, self.attentiveness-0.05)
+            self.attentiveness = max(0, self.attentiveness-0.005)
 
 
 if __name__ == "__main__":
