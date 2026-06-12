@@ -1,7 +1,7 @@
 import mesa
 import random
 from person import Person
-from base_model import BaseModel
+# from base_model import BaseModel
 from victim import Victim
 from police import Police
 

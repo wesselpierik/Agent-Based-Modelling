@@ -50,9 +50,9 @@ class BaseModel(mesa.Model):
 
     def init_population(self, agent_type, n):
         for _ in range(n):
-            i = random.randint(0, self.grid.width)
-            j = random.randint(0, self.grid.height)
-            if (i,j) in self.model.grid.empties:
+            i = random.randint(0, self.grid.width - 1)
+            j = random.randint(0, self.grid.height - 1)
+            if (i,j) in self.grid.empties:
                 self.add_agent(agent_type, (i, j))
 
     def step(self):

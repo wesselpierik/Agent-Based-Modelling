@@ -10,7 +10,8 @@ import sys
 # Change stdout so we can ignore most prints etc.
 orig_stdout = sys.stdout
 sys.stdout = open(os.devnull, 'w')
-IPython.get_ipython().magic("base_model.py")
+# IPython.get_ipython().magic("base_model.py")
+from base_model import BaseModel, Thief, Victim, Police
 sys.stdout = orig_stdout
 
 # You can change this to whatever ou want. Make sure to make the different types
@@ -41,6 +42,6 @@ server = ModularServer(BaseModel,
                        "BaseModel",
                        {})
 
-server.port = 8521
+server.port = 9023
 
 server.launch()
