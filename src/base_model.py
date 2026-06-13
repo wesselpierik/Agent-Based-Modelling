@@ -5,17 +5,19 @@ from mesa.datacollection import DataCollector
 from victim import Victim
 from police import Police
 from thief import Thief
+from person import HeatmapTile
 import random
+import numpy as np
 
 class BaseModel(mesa.Model):
-    def __init__(self, width=100, height=100):
+    def __init__(self, width=50, height=50):
         super().__init__()
 
         self.height = height
         self.width = width
-        self.n_thieves = 50
+        self.n_thieves = 10
         self.n_victims = 1000
-        self.n_police = 5
+        self.n_police = 3
 
         self.schedule_Victim = RandomActivation(self)
         self.schedule_Thief = RandomActivation(self)
@@ -23,7 +25,7 @@ class BaseModel(mesa.Model):
 
         self.schedule = RandomActivation(self)
 
-        self.grid = mesa.space.MultiGrid(width, height, True)
+        self.grid = mesa.space.MultiGrid(width, height, False)
 
         self.datacollector = DataCollector(
              {"Attempts": lambda m: sum(agent.attempts for agent in m.agents if isinstance(agent, Thief)),
@@ -33,6 +35,8 @@ class BaseModel(mesa.Model):
 
         self.n_agents = 0
         self.agents = []
+        self.crime_heatmap = np.zeros((width, height))
+
 
         # Create initial population of agents
         self.init_population(Thief, self.n_thieves)

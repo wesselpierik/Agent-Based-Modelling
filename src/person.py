@@ -2,6 +2,7 @@ import mesa
 # import base_model
 import random
 
+
 class Person(mesa.Agent):
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model)
@@ -17,7 +18,10 @@ class Person(mesa.Agent):
         empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
-            if len(contents) == 0:
+            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+        
+            # If there are no physical people in the cell, it's safe to move there!
+            if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
 
         if len(empty_neighbours) != 0:
@@ -99,6 +103,14 @@ class Person(mesa.Agent):
         # Biased movement of thieves when there is perceived police presence in the model
         pass
 
+class HeatmapTile(Person):
+    def __init__(self, unique_id, model, pos):
+        super().__init__(unique_id, model, pos)
+        
+    def step(self):
+        pass
+
+    
 if __name__ == "__main__":
     # Test the Person class with a single agent at (5,5)
     model = base_model.BaseModel()

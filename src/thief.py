@@ -1,6 +1,6 @@
 import mesa
 import random
-from person import Person
+from person import Person, HeatmapTile
 # from base_model import BaseModel
 from victim import Victim
 from police import Police
@@ -38,7 +38,7 @@ class Thief(Person):
         amount_of_people = self.model.n_agents # Total agents in simulation
         busyness_parameter = amount_of_people / grid_size # as it gets busier, gets closer to 1 # TODO: local busyness
 
-        prob_caught = ((1-police_parameter)+(1-busyness_parameter))/2
+        prob_caught = (0.8*(1-police_parameter)+0.2*(1-busyness_parameter))/2
         if self.riskyness > prob_caught:
             self.attempts += 1
             if random.random() < prob_caught:
@@ -49,7 +49,16 @@ class Thief(Person):
                 best_victim.attentiveness = min(1.0, best_victim.attentiveness + 0.1)
                 best_victim.robbed_timestamp = self.model.schedule.time 
                 self.riskyness = min(1, self.riskyness +0.05)
-                # TODO: wealth of victim changes??
+                x, y = self.pos
+                self.model.crime_heatmap[x][y] += 1
+                cell_contents = self.model.grid.get_cell_list_contents([(x, y)])
+                tile_exists = any(isinstance(agent, HeatmapTile) for agent in cell_contents)
+                
+                # Only spawn a tile if this is the first crime in this cell!
+                if not tile_exists:
+                    # Pass the model object directly (self.model)
+                    new_tile = HeatmapTile(f"tile_{x}_{y}", self.model, (x, y))
+                    self.model.grid.place_agent(new_tile, (x, y))
 
 
 if __name__ == "__main__":
