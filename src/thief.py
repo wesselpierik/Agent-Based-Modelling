@@ -34,9 +34,19 @@ class Thief(Person):
         else:
             police_parameter = 1
 
-        grid_size = self.model.grid.width * self.model.grid.height
-        amount_of_people = self.model.n_agents # Total agents in simulation
-        busyness_parameter = amount_of_people / grid_size # as it gets busier, gets closer to 1 # TODO: local busyness
+
+        # local busyness
+        local_cells = self.model.grid.get_neighborhood(
+            self.pos, 
+            moore=True, 
+            include_center=True, 
+            radius=10
+        )
+        local_contents = self.model.grid.get_cell_list_contents(local_cells)
+        local_people = [agent for agent in local_contents if not isinstance(agent, HeatmapTile)]
+        amount_of_people_local = len(local_people)
+        local_grid_size = len(local_cells)
+        busyness_parameter = amount_of_people_local / local_grid_size
 
         prob_caught = (0.8*(1-police_parameter)+0.2*(1-busyness_parameter))/2
         if self.riskyness > prob_caught:
