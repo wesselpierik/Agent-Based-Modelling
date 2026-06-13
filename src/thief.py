@@ -29,12 +29,6 @@ class Thief(Person):
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=3)
         police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
 
-        if police_nearby:
-            police_parameter = 1 / (1+len(police_nearby)) # gets smaller with more police
-        else:
-            police_parameter = 1
-
-
         # local busyness
         local_cells = self.model.grid.get_neighborhood(
             self.pos, 
@@ -48,7 +42,12 @@ class Thief(Person):
         local_grid_size = len(local_cells)
         busyness_parameter = amount_of_people_local / local_grid_size
 
-        prob_caught = (0.8*(1-police_parameter)+0.2*(1-busyness_parameter))/2
+        if police_nearby:
+            police_parameter=0.8 
+        else:
+            police_parameter=0
+
+        prob_caught = (0.8*police_parameter+0.2*(1-busyness_parameter))/2
         if self.riskyness > prob_caught:
             self.attempts += 1
             if random.random() < prob_caught:
