@@ -183,11 +183,10 @@ class Person(mesa.Agent):
             for surrounding_cell in empty_neighbours:
                 # Get neighbours of surrounding cell
                 neighbours_surrounding = self.model.grid.get_neighborhood(surrounding_cell, True)
-                empty_neighbours_surrounding = self.empty_neighbourhood(neighbours_surrounding)
 
                 # Get apparent wealth of each neighbour
                 apparent_wealth = []
-                for neighbour in empty_neighbours_surrounding:
+                for neighbour in neighbours_surrounding:
                     # print("neighbour")
                     contents = self.model.grid.get_cell_list_contents([neighbour])
                     filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
@@ -230,7 +229,7 @@ class HeatmapTile(Person):
     def step(self):
         pass
 
-    
+
 if __name__ == "__main__":
     # Test the Person class with a single agent at (5,5)
     model = base_model.BaseModel()
