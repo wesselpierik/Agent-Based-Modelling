@@ -69,6 +69,8 @@ class Thief(Person):
                     new_tile = HeatmapTile(f"tile_{x}_{y}", self.model, (x, y))
                     self.model.grid.place_agent(new_tile, (x, y))
 
+    def move_to_wealth(self):
+        return super().move_to_wealth()  
 
 if __name__ == "__main__":
     model = BaseModel()

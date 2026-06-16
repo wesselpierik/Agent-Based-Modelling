@@ -18,6 +18,8 @@ class Victim(Person):
             # potential victim gets less attentive after not being robbed for some time
             self.attentiveness = max(0, self.attentiveness-0.05)
 
+    def get_apparent_wealth(self):
+        return self.wealth
 
 if __name__ == "__main__":
     model = BaseModel()

@@ -10,10 +10,7 @@ class Person(mesa.Agent):
         # self.model = model
         self.pos = pos
 
-    def empty_neighbourhood(self):
-        # Get neighbours (Moore neighbourhood) 
-        neighbours = self.model.grid.get_neighborhood(self.pos, True)
-
+    def empty_neighbourhood(self, neighbours):
         # Check for empty neighbours
         empty_neighbours = []
         for neighbour in neighbours:
@@ -169,15 +166,59 @@ class Person(mesa.Agent):
             self.move()
 
     def apparent_wealth(self):
-        # Thieves move towards victims with higher apparent wealth
+        return None
+    
+    def move_to_wealth(self):
+        # Agents move towards victims with higher apparent wealth
         # Get neighbours (Moore neighbourhood)
-        empty_neighbours = self.empty_neighbourhood()
+        neighbours = self.model.grid.get_neighborhood(self.pos, True)
+        empty_neighbours = self.empty_neighbourhood(neighbours)
 
         if len(empty_neighbours) == 0:
             # No movement if there are no empty neighbours
             return
-        
+                        
+        else:
+            max_apparent_wealth = []
+            for surrounding_cell in empty_neighbours:
+                # Get neighbours of surrounding cell
+                neighbours_surrounding = self.model.grid.get_neighborhood(surrounding_cell, True)
+                empty_neighbours_surrounding = self.empty_neighbourhood(neighbours_surrounding)
 
+                # Get apparent wealth of each neighbour
+                apparent_wealth = []
+                for neighbour in empty_neighbours_surrounding:
+                    # print("neighbour")
+                    contents = self.model.grid.get_cell_list_contents([neighbour])
+                    filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+                    
+                    for content in filter_tiles:
+                        if content.__class__.__name__ == "Victim":
+                            # print("victim found")
+                            apparent_wealth.append(content.get_apparent_wealth())
+
+                if len(apparent_wealth) > 0:
+                    # print("works")
+                    max_apparent_wealth.append((neighbour, max(apparent_wealth)))
+
+            # Select neighbour with wealthies neighbour
+            if len(max_apparent_wealth) > 0:
+                values = [x[1] for x in max_apparent_wealth]
+                max_value = max(values)
+
+                max_indices = []
+                for index, value in enumerate(values):
+                    if value == max_value:
+                        max_indices.append(index)
+
+                selected_neighbour = max_apparent_wealth[random.choice(max_indices)][0]
+                
+            else:
+                # print("something went wrong")
+                selected_neighbour = random.choice(empty_neighbours)
+            
+            self.model.grid.move_agent(self, selected_neighbour)
+                
     def perceived_police(self):
         # Biased movement of thieves when there is perceived police presence in the model
         pass
