@@ -18,6 +18,16 @@ class Victim(Person):
             # potential victim gets less attentive after not being robbed for some time
             self.attentiveness = max(0, self.attentiveness-0.05)
 
+    def get_wealth(self):
+        return self.wealth
+    
+    def get_attentiveness(self):
+        return self.attentiveness
+    
+    def was_robbed(self):
+        self.attentiveness = max(1.0, self.attentiveness + 0.5)
+        self.robbed_timestamp = self.model.schedule.time
+
 
 if __name__ == "__main__":
     model = BaseModel()

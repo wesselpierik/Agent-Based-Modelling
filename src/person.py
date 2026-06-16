@@ -161,6 +161,28 @@ class Person(mesa.Agent):
         # Biased movement of thieves when there is perceived police presence in the model
         pass
 
+    def get_wealth(self):
+        raise NotImplementedError
+    
+    def get_attentiveness(self):
+        raise NotImplementedError
+    
+    def was_robbed(self):
+        raise NotImplementedError
+    
+    def get_local_business(self) -> float:
+        local_cells = self.model.grid.get_neighborhood(
+            self.pos, 
+            moore=True, 
+            include_center=True, 
+            radius=10
+        )
+        local_contents = self.model.grid.get_cell_list_contents(local_cells)
+        local_people = [agent for agent in local_contents if not isinstance(agent, HeatmapTile)]
+        amount_of_people_local = len(local_people)
+        local_grid_size = len(local_cells)
+        return amount_of_people_local / local_grid_size
+
 class HeatmapTile(Person):
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model, pos)
