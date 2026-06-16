@@ -54,7 +54,7 @@ class BaseModel(mesa.Model):
         self.grid.place_agent(new_agent, pos)
 
         # Add the agent to the model
-        self.agents.add(new_agent)
+        self.agents.append(new_agent)
 
         # Update the household value
         self.n_agents = len(self.agents)
