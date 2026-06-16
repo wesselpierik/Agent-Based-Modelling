@@ -21,7 +21,7 @@ def agent_portrayal(agent):
         
         if crime_count == 0:
             color = "#f0f0f0" 
-        elif crime_count == 1:
+        elif crime_count <= 1:
             color = "#f9ffa4"
         elif crime_count < 3:
             color = "#e4f500"
