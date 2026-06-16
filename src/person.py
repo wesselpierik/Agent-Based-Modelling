@@ -109,7 +109,7 @@ class Person(mesa.Agent):
         
         # Get closest police location
         closest_police = None
-        min_distance = float('inf')
+        min_distance = 9999999
 
         if len(police_locations) > 0:
             for loc in police_locations:
@@ -117,6 +117,41 @@ class Person(mesa.Agent):
                 if distance < min_distance:
                     min_distance = distance
                     closest_police = loc
+        
+        # Move towards closest police location
+        if closest_police is not None:
+            # Get neighbours (Moore neighbourhood)
+            neighbours = self.model.grid.get_neighborhood(self.pos, True)
+
+            # Check for empty neighbours
+            empty_neighbours = []
+            for neighbour in neighbours:
+                contents = self.model.grid.get_cell_list_contents([neighbour])
+                
+                filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+                if len(filter_tiles) == 0:
+                    empty_neighbours.append(neighbour)
+
+            if len(empty_neighbours) == 0:
+                # No movement if there are no empty neighbours
+                return
+            
+            else:
+                # Select neighbour that is closest to police location
+                closest_neighbour = None
+                min_distance = 9999999
+
+                for neighbour in empty_neighbours:
+                    distance = math.dist(neighbour, closest_police)
+                    if distance < min_distance:
+                        min_distance = distance
+                        closest_neighbour = neighbour
+                
+                self.model.grid.move_agent(self, closest_neighbour)
+
+        else:
+            # Move randomly if there is no police
+            self.move()
 
     def apparent_wealth(self):
         # Biased movement of agents when there is apparent wealth in the model
