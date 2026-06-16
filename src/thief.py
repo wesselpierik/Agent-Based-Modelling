@@ -14,7 +14,7 @@ class Thief(Person):
         self.attempts = 0
 
     def step(self):
-        self.move()
+        self.biased_move()
         
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
         potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
@@ -26,7 +26,7 @@ class Thief(Person):
             return
         
         # Search for police in randius 3
-        neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=3)
+        neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=round(self.model.width/5))
         police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
 
         # local busyness
@@ -55,7 +55,7 @@ class Thief(Person):
             else:
                 # succesful pickpocketing event
                 self.succesful_steals += 1
-                best_victim.attentiveness = min(1.0, best_victim.attentiveness + 0.1)
+                best_victim.attentiveness = max(1.0, best_victim.attentiveness + 0.5)
                 best_victim.robbed_timestamp = self.model.schedule.time 
                 self.riskyness = min(1, self.riskyness +0.05)
                 x, y = self.pos

@@ -7,31 +7,28 @@ import IPython
 import os
 import sys
 
-# Change stdout so we can ignore most prints etc.
 orig_stdout = sys.stdout
 sys.stdout = open(os.devnull, 'w')
-# IPython.get_ipython().magic("base_model.py")
 from base_model import BaseModel, Thief, Victim, Police, HeatmapTile
+from histogram import HistogramModule
 sys.stdout = orig_stdout
 
-# You can change this to whatever ou want. Make sure to make the different types
-# of agents distinguishable
+
 def agent_portrayal(agent):
     if isinstance(agent, HeatmapTile):
         x, y = agent.pos
         crime_count = agent.model.crime_heatmap[x][y]
         
-        # Choose a color gradient based on severity
         if crime_count == 0:
             color = "#f0f0f0" 
         elif crime_count == 1:
             color = "#f9ffa4"
         elif crime_count < 3:
-            color = "#f5ff64"
+            color = "#e4f500"
         elif crime_count < 6:
-            color = "#fbff24"
+            color = "#ffbb00"
         else:
-            color = "#eeff05"
+            color = "#fa903a"
 
             
         return {"Shape": "rect", "Color": color, "Filled": "true", "Layer": 0, "w": 1, "h": 1}
@@ -60,12 +57,14 @@ chart2 = ChartModule([{"Label": "Avg Attentiveness",
                        "Color": "blue"},],
                     data_collector_name='datacollector')
 
+attentiveness_dist = HistogramModule()
+
 # Create the server, and pass the grid and the graph
 server = ModularServer(BaseModel,
-                       [grid,chart, chart2],
+                       [grid,chart, chart2, attentiveness_dist],
                        "BaseModel",
                        {})
 
-server.port = 9037
+server.port = 9042
 
 server.launch()
