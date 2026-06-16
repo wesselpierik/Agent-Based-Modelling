@@ -1,4 +1,5 @@
 import mesa
+import math
 # import base_model
 import random
 
@@ -97,6 +98,25 @@ class Person(mesa.Agent):
                 selected_neighbour = random.choice(empty_neighbours)
 
             self.model.grid.move_agent(self, selected_neighbour)
+
+    def move_to_police(self):
+        # Biased movement where agent wants to move towards police presence
+        police_locations = []
+
+        for agent in self.model.agents:
+            if agent.__class__.__name__ == "Police":
+                police_locations.append(agent.pos)
+        
+        # Get closest police location
+        closest_police = None
+        min_distance = float('inf')
+
+        if len(police_locations) > 0:
+            for loc in police_locations:
+                distance = math.dist(self.pos, loc)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_police = loc
 
     def apparent_wealth(self):
         # Biased movement of agents when there is apparent wealth in the model
