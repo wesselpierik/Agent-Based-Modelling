@@ -10,6 +10,21 @@ class Person(mesa.Agent):
         # self.model = model
         self.pos = pos
 
+    def empty_neighbourhood(self):
+        # Get neighbours (Moore neighbourhood) 
+        neighbours = self.model.grid.get_neighborhood(self.pos, True)
+
+        # Check for empty neighbours
+        empty_neighbours = []
+        for neighbour in neighbours:
+            contents = self.model.grid.get_cell_list_contents([neighbour])
+            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+        
+            if len(filter_tiles) == 0:
+                empty_neighbours.append(neighbour)
+
+        return empty_neighbours
+
     def move(self):
         # Get neighbours (Moore neighbourhood) and randomly select one that is empty
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
@@ -154,8 +169,14 @@ class Person(mesa.Agent):
             self.move()
 
     def apparent_wealth(self):
-        # Biased movement of agents when there is apparent wealth in the model
-        pass
+        # Thieves move towards victims with higher apparent wealth
+        # Get neighbours (Moore neighbourhood)
+        empty_neighbours = self.empty_neighbourhood()
+
+        if len(empty_neighbours) == 0:
+            # No movement if there are no empty neighbours
+            return
+        
 
     def perceived_police(self):
         # Biased movement of thieves when there is perceived police presence in the model
