@@ -1,7 +1,7 @@
 import mesa
+import math
 # import base_model
 import random
-
 
 class Person(mesa.Agent):
     def __init__(self, unique_id, model, pos):
@@ -42,7 +42,9 @@ class Person(mesa.Agent):
         empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
-            if len(contents) == 0:
+            
+            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+            if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
 
         if len(empty_neighbours) == 0:
@@ -60,15 +62,17 @@ class Person(mesa.Agent):
                 for neighbour in empty_neighbours:
                     contents = self.model.grid.get_cell_list_contents([neighbour])
                     
-                    if len(contents) == 0:
+                    filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+                    if len(filter_tiles) == 0:
                         neighbours_of_neighbour = self.model.grid.get_neighborhood(neighbour, True)
                         passerby_count = 0
 
                         # For each neighbour of the neighbour, count the number of potential victims
                         for n in neighbours_of_neighbour:
                             contents = self.model.grid.get_cell_list_contents([n])
-
-                            for content in contents:
+                            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+                            
+                            for content in filter_tiles:
                                 if content.__class__.__name__ == "Victim":
                                     passerby_count += 1
 
@@ -94,6 +98,25 @@ class Person(mesa.Agent):
                 selected_neighbour = random.choice(empty_neighbours)
 
             self.model.grid.move_agent(self, selected_neighbour)
+
+    def move_to_police(self):
+        # Biased movement where agent wants to move towards police presence
+        police_locations = []
+
+        for agent in self.model.agents:
+            if agent.__class__.__name__ == "Police":
+                police_locations.append(agent.pos)
+        
+        # Get closest police location
+        closest_police = None
+        min_distance = float('inf')
+
+        if len(police_locations) > 0:
+            for loc in police_locations:
+                distance = math.dist(self.pos, loc)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_police = loc
 
     def apparent_wealth(self):
         # Biased movement of agents when there is apparent wealth in the model
