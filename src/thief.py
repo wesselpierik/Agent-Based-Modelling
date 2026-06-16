@@ -69,6 +69,8 @@ class Thief(Person):
                     self.model.grid.place_agent(new_tile, (x, y))
                     self.model.schedule.add(new_tile)
 
+    def move_to_wealth(self):
+        return super().move_to_wealth()  
 
 if __name__ == "__main__":
     model = BaseModel()
