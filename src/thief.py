@@ -14,7 +14,7 @@ class Thief(Person):
         self.attempts = 0
 
     def step(self):
-        self.biased_move()
+        self.move_to_wealth()
         
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
         potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
