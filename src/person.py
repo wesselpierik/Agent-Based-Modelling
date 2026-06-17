@@ -210,7 +210,6 @@ class Person(mesa.Agent):
                 selected_neighbour = max_apparent_wealth[random.choice(max_indices)][0]
                 
             else:
-                print("something went wrong")
                 selected_neighbour = random.choice(empty_neighbours)
             
             self.model.grid.move_agent(self, selected_neighbour)
