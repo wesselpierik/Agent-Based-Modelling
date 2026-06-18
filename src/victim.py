@@ -1,6 +1,6 @@
 import mesa
 from person import Person
-# from base_model import BaseModel
+
 import numpy as np
 import random
 
@@ -11,16 +11,22 @@ class Victim(Person):
         self.attentiveness = np.random.normal()
         self.wealth = np.random.normal()
         self.robbed_timestamp = 0
-    
+
     def step(self):
         self.move()
-        if self.model.schedule.time - self.robbed_timestamp > 5 and random.random()<0.1:
+        if (
+            self.model.schedule.time - self.robbed_timestamp > 5
+            and random.random() < 0.1
+        ):
             # potential victim gets less attentive after not being robbed for some time
-            self.attentiveness = max(0, self.attentiveness-0.05)
+            self.attentiveness = max(0, self.attentiveness - 0.05)
 
-    def get_apparent_wealth(self):
+    def get_wealth(self):
         return self.wealth
 
-if __name__ == "__main__":
-    model = BaseModel()
-    victim = Victim(1, model)
+    def get_attentiveness(self):
+        return self.attentiveness
+
+    def was_robbed(self):
+        self.attentiveness = max(1.0, self.attentiveness + 0.5)
+        self.robbed_timestamp = self.model.schedule.time
