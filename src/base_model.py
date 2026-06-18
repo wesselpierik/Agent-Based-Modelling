@@ -90,7 +90,7 @@ class BaseModel(mesa.Model):
         self.schedule_Police.step()
         self.schedule_Thief.step()
         self.schedule_Victim.step()
-
+        self.schedule.step()
         self.schedule.steps += 1
         self.schedule.time += 1
         self.datacollector.collect(self)
