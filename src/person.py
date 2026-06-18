@@ -1,5 +1,6 @@
 import mesa
 import math
+import numpy as np
 # import base_model
 import random
 
@@ -110,6 +111,40 @@ class Person(mesa.Agent):
                 selected_neighbour = random.choice(empty_neighbours)
 
             self.model.grid.move_agent(self, selected_neighbour)
+    
+    
+    def move_to_crowd(self):
+        # Biased movement of agents towards the bussiest spot within their range
+
+        # Get neighbours (Moore neighbourhood)
+        neighbours = self.model.grid.get_neighborhood(self.pos, True)
+
+        # Check for empty neighbours
+        empty_neighbours = []
+        for neighbour in neighbours:
+            contents = self.model.grid.get_cell_list_contents([neighbour])
+            
+            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+            if len(filter_tiles) == 0:
+                empty_neighbours.append(neighbour)
+
+        if len(empty_neighbours) == 0:
+            # No movement if there are no empty neighbours
+            return
+        
+        else:
+            # Move to crowd
+            radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
+            contents =  self.model.grid.get_cell_list_contents(radius)
+            coords = []
+            for agent in contents:
+                coords.append(agent.pos)
+            m = tuple(map(float, np.mean(coords, axis=0)))
+            # nb = self.model.grid.get_neighborhood(pos=self.pos, moore=True)
+            new_pos = min(empty_neighbours, key=lambda c: math.dist(c, m))
+            self.model.grid.move_agent(self, new_pos)
+
+        pass
 
     def move_to_police(self):
         # Biased movement where agent wants to move towards police presence
