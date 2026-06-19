@@ -66,9 +66,9 @@ class Thief(Person):
 
         # Only spawn a tile if this is the first crime in this cell!
         if not tile_exists:
-            # Pass the model object directly (self.model)
             new_tile = HeatmapTile(f"tile_{x}_{y}", self.model, (x, y))
             self.model.grid.place_agent(new_tile, (x, y))
+            self.model.schedule.add(new_tile)
 
     def move_to_wealth(self):
         return super().move_to_wealth()
