@@ -1,14 +1,16 @@
 import mesa
 import random
-from person import Person, HeatmapTile
+import numpy as np
+from person import Person
 from victim import Victim
 from police import Police
+from heatmap import HeatmapTile
 
 
 class Thief(Person):
-    def __init__(self, unique_id, model, pos):
-        super().__init__(unique_id, model, pos)
-        self.riskiness = random.uniform(0, 1)
+    def __init__(self, unique_id: int, model, pos: tuple[int, int], vision_radius: int) -> None:
+        super().__init__(unique_id, model, pos, vision_radius)
+        self.riskiness = np.random.uniform()
         self.succesful_steals = 0
         self.attempts = 0
 
@@ -25,9 +27,9 @@ class Thief(Person):
         else:
             return
 
-        # Search for police in radius 8 (self.vision)
+        # Search for police in vision radius
         neighbors = self.model.grid.get_neighbors(
-            self.pos, moore=True, radius=8 
+            self.pos, moore=True, radius=self.vision_radius 
                 )
         police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
         if police_nearby:
@@ -56,7 +58,7 @@ class Thief(Person):
             # no attempt made
             self.riskiness = min(1, self.riskiness + 0.05)
 
-    def rob(self, agent: Person, victim_attentiveness: float, police_attentiveness: float, business_parameter: float):
+    def rob(self, other: Person, victim_attentiveness: float, police_attentiveness: float, business_parameter: float):
         self.attempts += 1
         succes = True
         if random.random() < victim_attentiveness*(1-business_parameter):
@@ -72,19 +74,19 @@ class Thief(Person):
             return
         
         self.succesful_steals += 1
-        agent.was_robbed()
+        other.was_robbed()
         self.riskiness = min(1, self.riskiness + 0.05)
 
+        # Update or create heatmap tile
         x, y = self.pos
         self.model.crime_heatmap[x][y] += 1
         cell_contents = self.model.grid.get_cell_list_contents([(x, y)])
         tile_exists = any(isinstance(agent, HeatmapTile) for agent in cell_contents)
 
-        # Only spawn a tile if this is the first crime in this cell!
         if not tile_exists:
-            # Pass the model object directly (self.model)
             new_tile = HeatmapTile(f"tile_{x}_{y}", self.model, (x, y))
             self.model.grid.place_agent(new_tile, (x, y))
+            self.model.schedule.add(new_tile)
 
     def move_to_wealth(self):
         return super().move_to_wealth()
