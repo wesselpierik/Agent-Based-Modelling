@@ -158,15 +158,16 @@ class Person(mesa.Agent):
         else:
             # Move to crowd
             radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
-            contents = self.model.grid.get_cell_list_contents(radius)
-            coords = []
-            for agent in contents:
-                coords.append(agent.pos)
+            contents =  self.model.grid.get_cell_list_contents(radius)
+            coords = [agent.pos for agent in contents if type(agent).__name__ == "Victim"]
             m = tuple(map(float, np.mean(coords, axis=0)))
-            # nb = self.model.grid.get_neighborhood(pos=self.pos, moore=True)
+            if len(coords) == 0:
+                return
+            m = tuple(map(float, np.mean(coords, axis=0)))
             new_pos = min(empty_neighbours, key=lambda c: math.dist(c, m))
             self.model.grid.move_agent(self, new_pos)
 
+        pass
         pass
 
     def move_to_police(self):

@@ -18,9 +18,9 @@ class BaseModel(mesa.Model):
 
         self.height = height
         self.width = width
-        self.n_thieves = 50
-        self.n_victims = 1000
-        self.n_police = 3
+        self.n_thieves = 10
+        self.n_victims = 1500
+        self.n_police = 5
 
         self.police_vision_radius = police_vision_radius
         self.thief_vision_radius = thief_vision_radius
