@@ -227,7 +227,7 @@ class Person(mesa.Agent):
                     
                     for content in filter_tiles:
                         if content.__class__.__name__ == "Victim":
-                            apparent_wealth.append(content.get_apparent_wealth())
+                            apparent_wealth.append(content.get_wealth())
 
                 if len(apparent_wealth) > 0:
                     max_apparent_wealth.append((surrounding_cell, max(apparent_wealth)))
