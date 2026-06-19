@@ -1,5 +1,6 @@
 import mesa
 import random
+import numpy as np
 from person import Person
 from victim import Victim
 from police import Police
@@ -9,7 +10,7 @@ from heatmap import HeatmapTile
 class Thief(Person):
     def __init__(self, unique_id: int, model, pos: tuple[int, int], vision_radius: int) -> None:
         super().__init__(unique_id, model, pos, vision_radius)
-        self.riskyness = random.uniform(0, 1)
+        self.riskyness = np.random.uniform()
         self.succesful_steals = 0
         self.attempts = 0
 
