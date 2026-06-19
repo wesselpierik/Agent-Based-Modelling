@@ -15,9 +15,9 @@ class BaseModel(mesa.Model):
 
         self.height = height
         self.width = width
-        self.n_thieves = 50
-        self.n_victims = 1000
-        self.n_police = 3
+        self.n_thieves = 10
+        self.n_victims = 1500
+        self.n_police = 5
 
         self.schedule_Victim = RandomActivation(self)
         self.schedule_Thief = RandomActivation(self)
