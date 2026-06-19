@@ -249,7 +249,6 @@ class Person(mesa.Agent):
                 # Get apparent wealth of each neighbour
                 apparent_wealth = []
                 for neighbour in neighbours_surrounding:
-                    # print("neighbour")
                     contents = self.model.grid.get_cell_list_contents([neighbour])
                     filter_tiles = [
                         agent
@@ -259,12 +258,10 @@ class Person(mesa.Agent):
 
                     for content in filter_tiles:
                         if content.__class__.__name__ == "Victim":
-                            # print("victim found")
-                            apparent_wealth.append(content.get_apparent_wealth())
+                            apparent_wealth.append(content.get_wealth())
 
                 if len(apparent_wealth) > 0:
-                    # print("works")
-                    max_apparent_wealth.append((neighbour, max(apparent_wealth)))
+                    max_apparent_wealth.append((surrounding_cell, max(apparent_wealth)))
 
             # Select neighbour with wealthies neighbour
             if len(max_apparent_wealth) > 0:
@@ -279,7 +276,6 @@ class Person(mesa.Agent):
                 selected_neighbour = max_apparent_wealth[random.choice(max_indices)][0]
 
             else:
-                # print("something went wrong")
                 selected_neighbour = random.choice(empty_neighbours)
 
             self.model.grid.move_agent(self, selected_neighbour)
