@@ -65,7 +65,7 @@ class Person(mesa.Agent):
             contents = self.model.grid.get_cell_list_contents([neighbour])
 
             filter_tiles = [
-                agent for agent in contents if not isinstance(agent, HeatmapTile)
+                agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
             ]
             if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
@@ -88,7 +88,7 @@ class Person(mesa.Agent):
                     filter_tiles = [
                         agent
                         for agent in contents
-                        if not isinstance(agent, HeatmapTile)
+                        if not isinstance(agent, heatmap.HeatmapTile)
                     ]
                     if len(filter_tiles) == 0:
                         neighbours_of_neighbour = self.model.grid.get_neighborhood(
@@ -102,7 +102,7 @@ class Person(mesa.Agent):
                             filter_tiles = [
                                 agent
                                 for agent in contents
-                                if not isinstance(agent, HeatmapTile)
+                                if not isinstance(agent, heatmap.HeatmapTile)
                             ]
 
                             for content in filter_tiles:
@@ -199,7 +199,7 @@ class Person(mesa.Agent):
                 contents = self.model.grid.get_cell_list_contents([neighbour])
 
                 filter_tiles = [
-                    agent for agent in contents if not isinstance(agent, HeatmapTile)
+                    agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
                 ]
                 if len(filter_tiles) == 0:
                     empty_neighbours.append(neighbour)
@@ -253,7 +253,7 @@ class Person(mesa.Agent):
                     filter_tiles = [
                         agent
                         for agent in contents
-                        if not isinstance(agent, HeatmapTile)
+                        if not isinstance(agent, heatmap.HeatmapTile)
                     ]
 
                     for content in filter_tiles:
