@@ -10,15 +10,15 @@ class Victim(Person):
         self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
     ) -> None:
         super().__init__(unique_id, model, pos, vision_radius)
-        self.attentiveness = np.random.normal()
-        self.wealth = np.random.normal()
+        self.attentiveness = np.random.uniform()
+        self.wealth = np.random.uniform()
         self.robbed_timestamp = 0
 
     def step(self):
         self.move()
         if (
             self.model.schedule.time - self.robbed_timestamp > 5
-            and random.random() < 0.1
+            and random.random() < 0.01*(1-self.wealth)  # decay probability dependent of wealth
         ):
             # potential victim gets less attentive after not being robbed for some time
             self.attentiveness = max(0, self.attentiveness - 0.05)
