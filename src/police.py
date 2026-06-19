@@ -10,6 +10,9 @@ class Police(Person):
     def step(self):
         self.move()
 
+    def get_attentiveness(self):
+        return 1
+
 
 if __name__ == "__main__":
     model = BaseModel()

@@ -1,5 +1,6 @@
 import mesa
 import math
+import numpy as np
 # import base_model
 import random
 
@@ -110,6 +111,40 @@ class Person(mesa.Agent):
                 selected_neighbour = random.choice(empty_neighbours)
 
             self.model.grid.move_agent(self, selected_neighbour)
+    
+    
+    def move_to_crowd(self):
+        # Biased movement of agents towards the bussiest spot within their range
+
+        # Get neighbours (Moore neighbourhood)
+        neighbours = self.model.grid.get_neighborhood(self.pos, True)
+
+        # Check for empty neighbours
+        empty_neighbours = []
+        for neighbour in neighbours:
+            contents = self.model.grid.get_cell_list_contents([neighbour])
+            
+            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+            if len(filter_tiles) == 0:
+                empty_neighbours.append(neighbour)
+
+        if len(empty_neighbours) == 0:
+            # No movement if there are no empty neighbours
+            return
+        
+        else:
+            # Move to crowd
+            radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
+            contents =  self.model.grid.get_cell_list_contents(radius)
+            coords = []
+            for agent in contents:
+                coords.append(agent.pos)
+            m = tuple(map(float, np.mean(coords, axis=0)))
+            # nb = self.model.grid.get_neighborhood(pos=self.pos, moore=True)
+            new_pos = min(empty_neighbours, key=lambda c: math.dist(c, m))
+            self.model.grid.move_agent(self, new_pos)
+
+        pass
 
     def move_to_police(self):
         # Biased movement where agent wants to move towards police presence
@@ -217,6 +252,28 @@ class Person(mesa.Agent):
     def perceived_police(self):
         # Biased movement of thieves when there is perceived police presence in the model
         pass
+
+    def get_wealth(self):
+        raise NotImplementedError
+    
+    def get_attentiveness(self):
+        raise NotImplementedError
+    
+    def was_robbed(self):
+        raise NotImplementedError
+    
+    def get_local_business(self) -> float:
+        local_cells = self.model.grid.get_neighborhood(
+            self.pos, 
+            moore=True, 
+            include_center=True, 
+            radius=10
+        )
+        local_contents = self.model.grid.get_cell_list_contents(local_cells)
+        local_people = [agent for agent in local_contents if not isinstance(agent, HeatmapTile)]
+        amount_of_people_local = len(local_people)
+        local_grid_size = len(local_cells)
+        return amount_of_people_local / local_grid_size
 
 class HeatmapTile(Person):
     def __init__(self, unique_id, model, pos):
