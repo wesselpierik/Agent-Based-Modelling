@@ -1,20 +1,21 @@
 import mesa
 import random
-from person import Person, HeatmapTile
+from person import Person
 from victim import Victim
 from police import Police
+from heatmap import HeatmapTile
 
 
 class Thief(Person):
-    def __init__(self, unique_id, model, pos):
-        super().__init__(unique_id, model, pos)
+    def __init__(self, unique_id: int, model, pos: tuple[int, int], vision_radius: int) -> None:
+        super().__init__(unique_id, model, pos, vision_radius)
         self.riskyness = random.uniform(0, 1)
         self.succesful_steals = 0
         self.attempts = 0
 
     def step(self):
-        self.move_to_crowd()
-
+        self.move_to_wealth()
+        
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
         potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
         if potential_victims:
@@ -28,7 +29,7 @@ class Thief(Person):
 
         # Search for police in randius 3
         neighbors = self.model.grid.get_neighbors(
-            self.pos, moore=True, radius=round(self.model.width / 5)
+            self.pos, moore=True, radius=self.model.thief_vision_radius
         )
         police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
 
@@ -48,7 +49,7 @@ class Thief(Person):
         if self.riskyness > prob_caught:
             self.rob(best_victim, prob_caught)
 
-    def rob(self, agent: Person, prob_caught: float):
+    def rob(self, other: Person, prob_caught: float):
         self.attempts += 1
         if random.random() < prob_caught:
             self.riskyness = max(0, self.riskyness - 0.1)
@@ -56,7 +57,7 @@ class Thief(Person):
 
         # succesful pickpocketing event
         self.succesful_steals += 1
-        agent.was_robbed()
+        other.was_robbed()
         self.riskyness = min(1, self.riskyness + 0.05)
 
         x, y = self.pos

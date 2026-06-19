@@ -1,23 +1,29 @@
 import mesa
 import math
 import numpy as np
+
 # import base_model
 import random
+import heatmap
+
 
 class Person(mesa.Agent):
-    def __init__(self, unique_id, model, pos):
+    def __init__(self, unique_id: int, model, pos: tuple[int, int], vision_radius: int):
         super().__init__(unique_id, model)
 
-        # self.model = model
+        self.model = model
         self.pos = pos
+        self.vision_radius = vision_radius
 
     def empty_neighbourhood(self, neighbours):
         # Check for empty neighbours
         empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
-            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
-        
+            filter_tiles = [
+                agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+            ]
+
             if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
 
@@ -31,8 +37,10 @@ class Person(mesa.Agent):
         empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
-            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
-        
+            filter_tiles = [
+                agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+            ]
+
             # If there are no physical people in the cell, it's safe to move there!
             if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
@@ -43,7 +51,7 @@ class Person(mesa.Agent):
         else:
             # No movement if there are no empty neighbours
             return
-        
+
         # Move agent
         self.model.grid.move_agent(self, selected_neighbour)
 
@@ -55,15 +63,17 @@ class Person(mesa.Agent):
         empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
-            
-            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+
+            filter_tiles = [
+                agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+            ]
             if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
 
         if len(empty_neighbours) == 0:
             # No movement if there are no empty neighbours
             return
-        
+
         else:
             # Type of agent
             agent_type = self.__class__.__name__
@@ -74,17 +84,27 @@ class Person(mesa.Agent):
                 n_passerby_neighbour = []
                 for neighbour in empty_neighbours:
                     contents = self.model.grid.get_cell_list_contents([neighbour])
-                    
-                    filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+
+                    filter_tiles = [
+                        agent
+                        for agent in contents
+                        if not isinstance(agent, heatmap.HeatmapTile)
+                    ]
                     if len(filter_tiles) == 0:
-                        neighbours_of_neighbour = self.model.grid.get_neighborhood(neighbour, True)
+                        neighbours_of_neighbour = self.model.grid.get_neighborhood(
+                            neighbour, True
+                        )
                         passerby_count = 0
 
                         # For each neighbour of the neighbour, count the number of potential victims
                         for n in neighbours_of_neighbour:
                             contents = self.model.grid.get_cell_list_contents([n])
-                            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
-                            
+                            filter_tiles = [
+                                agent
+                                for agent in contents
+                                if not isinstance(agent, heatmap.HeatmapTile)
+                            ]
+
                             for content in filter_tiles:
                                 if content.__class__.__name__ == "Victim":
                                     passerby_count += 1
@@ -105,14 +125,15 @@ class Person(mesa.Agent):
                         if value == max_value:
                             max_indices.append(index)
 
-                    selected_neighbour = n_passerby_neighbour[random.choice(max_indices)][0]
+                    selected_neighbour = n_passerby_neighbour[
+                        random.choice(max_indices)
+                    ][0]
 
             else:
                 selected_neighbour = random.choice(empty_neighbours)
 
             self.model.grid.move_agent(self, selected_neighbour)
-    
-    
+
     def move_to_crowd(self):
         # Biased movement of agents towards the bussiest spot within their range
 
@@ -123,15 +144,17 @@ class Person(mesa.Agent):
         empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
-            
-            filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+
+            filter_tiles = [
+                agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+            ]
             if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
 
         if len(empty_neighbours) == 0:
             # No movement if there are no empty neighbours
             return
-        
+
         else:
             # Move to crowd
             radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
@@ -154,7 +177,7 @@ class Person(mesa.Agent):
         for agent in self.model.agents:
             if agent.__class__.__name__ == "Police":
                 police_locations.append(agent.pos)
-        
+
         # Get closest police location
         closest_police = None
         min_distance = 9999999
@@ -165,7 +188,7 @@ class Person(mesa.Agent):
                 if distance < min_distance:
                     min_distance = distance
                     closest_police = loc
-        
+
         # Move towards closest police location
         if closest_police is not None:
             # Get neighbours (Moore neighbourhood)
@@ -175,15 +198,17 @@ class Person(mesa.Agent):
             empty_neighbours = []
             for neighbour in neighbours:
                 contents = self.model.grid.get_cell_list_contents([neighbour])
-                
-                filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
+
+                filter_tiles = [
+                    agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+                ]
                 if len(filter_tiles) == 0:
                     empty_neighbours.append(neighbour)
 
             if len(empty_neighbours) == 0:
                 # No movement if there are no empty neighbours
                 return
-            
+
             else:
                 # Select neighbour that is closest to police location
                 closest_neighbour = None
@@ -194,7 +219,7 @@ class Person(mesa.Agent):
                     if distance < min_distance:
                         min_distance = distance
                         closest_neighbour = neighbour
-                
+
                 self.model.grid.move_agent(self, closest_neighbour)
 
         else:
@@ -203,7 +228,7 @@ class Person(mesa.Agent):
 
     def apparent_wealth(self):
         return None
-    
+
     def move_to_wealth(self):
         # Agents move towards victims with higher apparent wealth
         # Get neighbours (Moore neighbourhood)
@@ -213,28 +238,31 @@ class Person(mesa.Agent):
         if len(empty_neighbours) == 0:
             # No movement if there are no empty neighbours
             return
-                        
+
         else:
             max_apparent_wealth = []
             for surrounding_cell in empty_neighbours:
                 # Get neighbours of surrounding cell
-                neighbours_surrounding = self.model.grid.get_neighborhood(surrounding_cell, True)
+                neighbours_surrounding = self.model.grid.get_neighborhood(
+                    surrounding_cell, True
+                )
 
                 # Get apparent wealth of each neighbour
                 apparent_wealth = []
                 for neighbour in neighbours_surrounding:
-                    # print("neighbour")
                     contents = self.model.grid.get_cell_list_contents([neighbour])
-                    filter_tiles = [agent for agent in contents if not isinstance(agent, HeatmapTile)]
-                    
+                    filter_tiles = [
+                        agent
+                        for agent in contents
+                        if not isinstance(agent, heatmap.HeatmapTile)
+                    ]
+
                     for content in filter_tiles:
                         if content.__class__.__name__ == "Victim":
-                            # print("victim found")
-                            apparent_wealth.append(content.get_apparent_wealth())
+                            apparent_wealth.append(content.get_wealth())
 
                 if len(apparent_wealth) > 0:
-                    # print("works")
-                    max_apparent_wealth.append((neighbour, max(apparent_wealth)))
+                    max_apparent_wealth.append((surrounding_cell, max(apparent_wealth)))
 
             # Select neighbour with wealthies neighbour
             if len(max_apparent_wealth) > 0:
@@ -247,62 +275,27 @@ class Person(mesa.Agent):
                         max_indices.append(index)
 
                 selected_neighbour = max_apparent_wealth[random.choice(max_indices)][0]
-                
+
             else:
-                # print("something went wrong")
                 selected_neighbour = random.choice(empty_neighbours)
-            
+
             self.model.grid.move_agent(self, selected_neighbour)
-                
+
     def perceived_police(self):
         # Biased movement of thieves when there is perceived police presence in the model
         pass
 
     def get_wealth(self):
         raise NotImplementedError
-    
+
     def get_attentiveness(self):
         raise NotImplementedError
-    
+
     def was_robbed(self):
         raise NotImplementedError
-    
+
+    def get_vision_radius(self):
+        return self.vision_radius
+
     def get_local_business(self) -> float:
-        local_cells = self.model.grid.get_neighborhood(
-            self.pos, 
-            moore=True, 
-            include_center=True, 
-            radius=10
-        )
-        local_contents = self.model.grid.get_cell_list_contents(local_cells)
-        local_people = [agent for agent in local_contents if not isinstance(agent, HeatmapTile)]
-        amount_of_people_local = len(local_people)
-        local_grid_size = len(local_cells)
-        return amount_of_people_local / local_grid_size
-
-class HeatmapTile(Person):
-    def __init__(self, unique_id, model, pos):
-        super().__init__(unique_id, model, pos)
-        
-    def step(self):
-        x, y = self.pos
-        
-        # Decrease the crime count by a fraction every timestep (e.g., 0.1)
-        # This allows smooth transitioning down through your color brackets
-        if self.model.crime_heatmap[x][y] > 0:
-            self.model.crime_heatmap[x][y] = max(0, self.model.crime_heatmap[x][y] - 0.1)
-            
-        # Once the crime count completely cools down to 0, remove the tile
-        if self.model.crime_heatmap[x][y] == 0:
-            self.model.grid.remove_agent(self)
-            self.model.schedule.remove(self)
-
-
-if __name__ == "__main__":
-    # Test the Person class with a single agent at (5,5)
-    model = base_model.BaseModel()
-    # model.add_agent(Person, (5, 5))
-    # person = model.agents[0]
-    # print(person.pos)
-    # person.move()
-    # print(person.pos)
+        return self.model.get_local_business(self.pos)
