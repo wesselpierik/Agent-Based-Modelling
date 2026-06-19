@@ -28,7 +28,7 @@ class Thief(Person):
         else:
             return
 
-        # Search for police in randius 3
+        # Search for police in vision radius
         neighbors = self.model.grid.get_neighbors(
             self.pos, moore=True, radius=self.model.thief_vision_radius
         )
@@ -59,14 +59,14 @@ class Thief(Person):
         # succesful pickpocketing event
         self.succesful_steals += 1
         other.was_robbed()
-        self.riskyness = min(1, self.riskyness + 0.05)
+        self.riskyness = min(1, self.riskyness + 0.05) # update riskyness
 
+        # Update or create heatmap tile
         x, y = self.pos
         self.model.crime_heatmap[x][y] += 1
         cell_contents = self.model.grid.get_cell_list_contents([(x, y)])
         tile_exists = any(isinstance(agent, HeatmapTile) for agent in cell_contents)
 
-        # Only spawn a tile if this is the first crime in this cell!
         if not tile_exists:
             new_tile = HeatmapTile(f"tile_{x}_{y}", self.model, (x, y))
             self.model.grid.place_agent(new_tile, (x, y))
