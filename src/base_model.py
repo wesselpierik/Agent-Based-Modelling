@@ -31,7 +31,7 @@ class BaseModel(mesa.Model):
              {"Attempts": lambda m: sum(agent.attempts for agent in m.agents if isinstance(agent, Thief)),
               "Succesful": lambda m: (sum(agent.succesful_steals for agent in m.agents if isinstance(agent, Thief))),
               "Avg Attentiveness": lambda m: sum(agent.attentiveness for agent in m.agents if isinstance(agent, Victim))/self.n_victims,
-              "Avg Riskyness": lambda m: sum(agent.riskyness for agent in m.agents if isinstance(agent, Thief))/self.n_thieves})
+              "Avg Riskiness": lambda m: sum(agent.riskiness for agent in m.agents if isinstance(agent, Thief))/self.n_thieves})
 
         self.n_agents = 0
         self.agents = []

@@ -6,12 +6,13 @@ from person import Person
 class Police(Person):
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model, pos)
+        self.attentiveness = 1
     
     def step(self):
         self.move()
 
     def get_attentiveness(self):
-        return 1
+        return self.attentiveness
 
 
 if __name__ == "__main__":

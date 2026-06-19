@@ -8,56 +8,72 @@ from police import Police
 class Thief(Person):
     def __init__(self, unique_id, model, pos):
         super().__init__(unique_id, model, pos)
-        self.riskyness = random.uniform(0, 1)
+        self.riskiness = random.uniform(0, 1)
         self.succesful_steals = 0
         self.attempts = 0
 
     def step(self):
-        self.move_to_wealth()
+        self.move()
         
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
         potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
         if potential_victims:
-            best_victim = max(
-                potential_victims, key=lambda v: -v.get_attentiveness() + v.get_wealth()
+            # sort victims based on how attractive they are
+            potential_victims.sort(
+                key=lambda v: -v.get_attentiveness() + v.get_wealth()
             )
-            if best_victim.get_attentiveness() > 0.9:
-                return  # no good options, move on
         else:
             return
 
-        # Search for police in randius 3
+        # Search for police in radius 8 (self.vision)
         neighbors = self.model.grid.get_neighbors(
-            self.pos, moore=True, radius=round(self.model.width / 5)
-        )
+            self.pos, moore=True, radius=8 
+                )
         police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
-
-        # local busyness
-        business_parameter = self.get_local_business()
-
         if police_nearby:
-            police_parameter = 0.8
+            pol_att = police_nearby[0].get_attentiveness()
         else:
-            police_parameter = 0
+            pol_att = 0
 
-        prob_caught = (
-            0.5 * police_parameter
-            + 0.2 * (1 - business_parameter)
-            + 0.3 * (1 - best_victim.get_attentiveness())
-        )
-        if self.riskyness > prob_caught:
-            self.rob(best_victim, prob_caught)
+        # local business
+        business_parameter = self.get_local_business()
+        
+        for victim in potential_victims:
+            loot = 5
+            fine = 2
+            vic_att = victim.get_attentiveness()
+            # calculation based on game theory
+            utility_thief = self.riskiness*loot*(1-vic_att)*(1-pol_att) - fine*(vic_att + pol_att)
 
-    def rob(self, agent: Person, prob_caught: float):
+            if utility_thief > 0:
+                self.rob(victim, vic_att, pol_att, business_parameter)
+                break
+            else:
+                # no steal and victim does not notice:
+                if random.random() > vic_att*(1-business_parameter):
+                    victim.attetiveness = max(0, victim.attentiveness - 0.1)
+            
+            # no attempt made
+            self.riskiness = min(1, self.riskiness + 0.05)
+
+    def rob(self, agent: Person, victim_attentiveness: float, police_attentiveness: float, business_parameter: float):
         self.attempts += 1
-        if random.random() < prob_caught:
-            self.riskyness = max(0, self.riskyness - 0.1)
-            return
+        succes = True
+        if random.random() < victim_attentiveness*(1-business_parameter):
+            self.riskiness = max(0, self.riskiness - 0.1)
+            succes = False
+        if random.random() < police_attentiveness*(1-business_parameter):
+            self.riskiness = max(0, self.riskiness - 0.1)
+            succes = False
+        
 
         # succesful pickpocketing event
+        if not succes:
+            return
+        
         self.succesful_steals += 1
         agent.was_robbed()
-        self.riskyness = min(1, self.riskyness + 0.05)
+        self.riskiness = min(1, self.riskiness + 0.05)
 
         x, y = self.pos
         self.model.crime_heatmap[x][y] += 1
