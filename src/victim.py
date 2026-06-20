@@ -10,8 +10,9 @@ class Victim(Person):
         self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
     ) -> None:
         super().__init__(unique_id, model, pos, vision_radius)
-        self.attentiveness = np.random.uniform()
         self.wealth = np.random.uniform()
+        self.attentiveness = np.random.uniform() 
+        #TODO initial attentiveness aligns with wealth?
         self.robbed_timestamp = 0
 
     def step(self):
