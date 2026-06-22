@@ -299,3 +299,4 @@ class Person(mesa.Agent):
 
     def get_local_business(self) -> float:
         return self.model.get_local_business(self.pos)
+        # return 0

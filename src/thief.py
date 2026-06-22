@@ -8,7 +8,9 @@ from heatmap import HeatmapTile
 
 
 class Thief(Person):
-    def __init__(self, unique_id: int, model, pos: tuple[int, int], vision_radius: int) -> None:
+    def __init__(
+        self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
+    ) -> None:
         super().__init__(unique_id, model, pos, vision_radius)
         self.riskiness = np.random.uniform()
         self.succesful_steals = 0
@@ -16,7 +18,7 @@ class Thief(Person):
 
     def step(self):
         self.move()
-        
+
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
         potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
         if potential_victims:
@@ -29,8 +31,8 @@ class Thief(Person):
 
         # Search for police in vision radius
         neighbors = self.model.grid.get_neighbors(
-            self.pos, moore=True, radius=self.vision_radius 
-                )
+            self.pos, moore=True, radius=self.vision_radius
+        )
         police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
         if police_nearby:
             pol_att = police_nearby[0].get_attentiveness()
@@ -39,43 +41,50 @@ class Thief(Person):
 
         # local business
         business_parameter = self.get_local_business()
-        
+
         for victim in potential_victims:
             loot = 5
             fine = 2
             vic_att = victim.get_attentiveness()
             # calculation based on game theory
-            utility_thief = self.riskiness*loot*(1-vic_att)*(1-pol_att) - fine*(vic_att + pol_att)
+            utility_thief = self.riskiness * loot * (1 - vic_att) * (
+                1 - pol_att
+            ) - fine * (vic_att + pol_att)
 
             if utility_thief > 0:
                 self.rob(victim, vic_att, pol_att, business_parameter)
                 break
             else:
                 # no steal and victim does not notice:
-                if random.random() > vic_att*(1-business_parameter):
+                if random.random() > vic_att * (1 - business_parameter):
                     victim.attetiveness = max(0, victim.attentiveness - 0.1)
-            
-            # no attempt made
-            self.riskiness = min(1, self.riskiness + 0.05)
 
-    def rob(self, other: Person, victim_attentiveness: float, police_attentiveness: float, business_parameter: float):
+            # no attempt made
+            self.riskiness = min(1, self.riskiness * 1.1)
+
+    def rob(
+        self,
+        other: Person,
+        victim_attentiveness: float,
+        police_attentiveness: float,
+        business_parameter: float,
+    ):
         self.attempts += 1
         succes = True
-        if random.random() < victim_attentiveness*(1-business_parameter):
-            self.riskiness = max(0, self.riskiness - 0.1)
+        if random.random() < victim_attentiveness:
+            self.riskiness = max(0, self.riskiness * 0.5)
             succes = False
-        if random.random() < police_attentiveness*(1-business_parameter):
-            self.riskiness = max(0, self.riskiness - 0.1)
+        if random.random() < police_attentiveness:
+            self.riskiness = max(0, self.riskiness * 0.5)
             succes = False
-        
 
         # succesful pickpocketing event
         if not succes:
             return
-        
+
         self.succesful_steals += 1
         other.was_robbed()
-        self.riskiness = min(1, self.riskiness + 0.05)
+        self.riskiness = min(1, self.riskiness)
 
         # Update or create heatmap tile
         x, y = self.pos

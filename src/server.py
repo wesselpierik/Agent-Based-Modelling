@@ -74,7 +74,7 @@ chart = ChartModule(
 chart2 = ChartModule(
     [
         {"Label": "Avg Attentiveness", "Color": "brown"},
-        {"Label": "Avg Riskyness", "Color": "blue"},
+        {"Label": "Avg Riskiness", "Color": "blue"},
     ],
     data_collector_name="datacollector",
 )
