@@ -54,7 +54,7 @@ class BaseModel(mesa.Model):
                     if isinstance(agent, victim.Victim)
                 )
                 / self.n_victims,
-                "Avg Riskyness": lambda m: sum(
+                "Avg Riskiness": lambda m: sum(
                     agent.riskyness
                     for agent in m.agents
                     if isinstance(agent, thief.Thief)
