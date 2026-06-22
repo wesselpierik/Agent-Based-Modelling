@@ -84,7 +84,7 @@ class Thief(Person):
 
         self.succesful_steals += 1
         other.was_robbed()
-        self.riskiness = min(1, self.riskiness)
+        self.riskiness = self.riskyness = min(1, self.riskiness + self.model.beta)
 
         # Update or create heatmap tile
         x, y = self.pos
