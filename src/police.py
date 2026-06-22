@@ -9,9 +9,10 @@ class Police(Person):
         self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
     ) -> None:
         super().__init__(unique_id, model, pos, vision_radius)
+        self.attentiveness = 1
 
     def step(self):
         self.move()
 
     def get_attentiveness(self):
-        return 1
+        return self.attentiveness

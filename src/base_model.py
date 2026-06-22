@@ -55,7 +55,7 @@ class BaseModel(mesa.Model):
                 )
                 / self.n_victims,
                 "Avg Riskiness": lambda m: sum(
-                    agent.riskyness
+                    agent.riskiness
                     for agent in m.agents
                     if isinstance(agent, thief.Thief)
                 )
@@ -122,7 +122,7 @@ class BaseModel(mesa.Model):
         while agents_spawned < n:
             i = random.randint(0, self.grid.width - 1)
             j = random.randint(0, self.grid.height - 1)
-            
+
             if (i, j) in self.grid.empties:
                 self.add_agent(agent_type, (i, j))
                 agents_spawned += 1  # Only count successful spawns!
