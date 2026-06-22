@@ -18,7 +18,7 @@ class BaseModel(mesa.Model):
 
         self.height = height
         self.width = width
-        self.n_thieves = 100
+        self.n_thieves = 10
         self.n_victims = 1500
         self.n_police = 5
 
@@ -118,11 +118,14 @@ class BaseModel(mesa.Model):
         self.n_agents = len(self.agents)
 
     def init_population(self, agent_type, n):
-        for _ in range(n):
+        agents_spawned = 0
+        while agents_spawned < n:
             i = random.randint(0, self.grid.width - 1)
             j = random.randint(0, self.grid.height - 1)
+
             if (i, j) in self.grid.empties:
                 self.add_agent(agent_type, (i, j))
+                agents_spawned += 1  # Only count successful spawns!
 
     def get_local_business(self, pos: tuple[int, int]) -> float:
         local_cells = self.grid.get_neighborhood(

@@ -1,6 +1,7 @@
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule
+from mesa.visualization.modules import TextElement
 
 # Import the implemented classes
 import IPython
@@ -16,6 +17,10 @@ from thief import Thief
 from victim import Victim
 from histogram import HistogramModule
 
+import matplotlib as mpl
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
+
 sys.stdout = orig_stdout
 
 
@@ -23,17 +28,13 @@ def agent_portrayal(agent):
     if isinstance(agent, HeatmapTile):
         x, y = agent.pos
         crime_count = agent.model.crime_heatmap[x][y]
-
+        
         if crime_count == 0:
-            color = "#f0f0f0"
-        elif crime_count <= 1:
-            color = "#f9ffa4"
-        elif crime_count < 3:
-            color = "#e4f500"
-        elif crime_count < 6:
-            color = "#ffbb00"
+            color = "#f7f7f7"
         else:
-            color = "#fa903a"
+            norm = mcolors.Normalize(vmin=1, vmax=15)
+            cmap = mpl.colormaps.get_cmap('Wistia')
+            color = mcolors.to_hex(cmap(norm(crime_count)))
 
         return {
             "Shape": "rect",
@@ -57,6 +58,7 @@ def agent_portrayal(agent):
             "r": 0.5,
         }
         return portrayal
+
 
 
 # Create a grid of 10 by 10 cells, and display it as 500 by 500 pixels
