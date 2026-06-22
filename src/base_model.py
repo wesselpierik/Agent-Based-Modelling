@@ -11,20 +11,22 @@ import numpy as np
 
 
 class BaseModel(mesa.Model):
-    def __init__(
-        self, width=50, height=50, police_vision_radius=8, thief_vision_radius=3
-    ):
+    def __init__(self, width=50, height=50, police_vision_radius=8, thief_vision_radius=3, n_police=5, decay_attentiveness=0.1, increase_attentiveness=0.5, increase_riskiness=0.05, **kwargs):
         super().__init__()
 
         self.height = height
         self.width = width
         self.n_thieves = 10
         self.n_victims = 1500
-        self.n_police = 5
+        self.n_police = n_police
 
         self.police_vision_radius = police_vision_radius
         self.thief_vision_radius = thief_vision_radius
         self.victim_vision_radius = 1
+
+        self.alpha = increase_attentiveness
+        self.beta = increase_riskiness
+        self.delta = decay_attentiveness
 
         self.schedule_Victim = RandomActivation(self)
         self.schedule_Thief = RandomActivation(self)
