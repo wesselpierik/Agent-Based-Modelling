@@ -22,7 +22,7 @@ class Victim(Person):
             and random.random() < 0.05*(1-self.wealth)  # decay probability dependent of wealth
         ):
             # potential victim gets less attentive after not being robbed for some time
-            self.attentiveness = max(0, self.attentiveness - 0.05)
+            self.attentiveness = max(0, self.attentiveness - 0.1)
 
     def get_wealth(self):
         return self.wealth

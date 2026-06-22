@@ -53,7 +53,7 @@ class Thief(Person):
     def rob(self, other: Person, prob_caught: float):
         self.attempts += 1
         if random.random() < prob_caught:
-            self.riskyness = max(0, self.riskyness - 0.1)
+            self.riskyness = max(0, self.riskyness - 0.09)
             return
 
         # succesful pickpocketing event
