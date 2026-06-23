@@ -25,7 +25,7 @@ def evaluate(sample):
     tk0 = tqdm(range(replicates), total=int(replicates), disable=None)
     for i in tk0:
         model = BaseModel(
-            n_police=sample[0],
+            n_police=int(sample[0]),
             loot=sample[1],
             fine=sample[2],
             police_vision_radius=sample[4],
@@ -58,7 +58,7 @@ if __name__ == "__main__":
         ],
         "bounds": [
             # [0.1, 1.0],  # victim attentiveness  (float)
-            [1, 20],  # number of police
+            [1, 32],  # number of police
             [2, 20],  # loot
             [0.2, 7],  # fine
             [0.1, 1.0],  # police attentiveness (float)
