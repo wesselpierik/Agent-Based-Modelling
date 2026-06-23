@@ -31,7 +31,7 @@ class Thief(Person):
 
         # Search for police in vision radius
         neighbors = self.model.grid.get_neighbors(
-            self.pos, moore=True, radius=self.vision_radius
+            self.pos, moore=True, radius=int(self.vision_radius)
         )
         police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
         if police_nearby:

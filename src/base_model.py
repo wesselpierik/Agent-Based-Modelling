@@ -12,7 +12,13 @@ import numpy as np
 
 class BaseModel(mesa.Model):
     def __init__(
-        self, width=50, height=50, police_vision_radius=8, thief_vision_radius=3
+        self,
+        width=50,
+        height=50,
+        police_vision_radius=8,
+        thief_vision_radius=3,
+        police_attentiveness=1,
+        risk=1,
     ):
         super().__init__()
 
@@ -25,6 +31,10 @@ class BaseModel(mesa.Model):
         self.police_vision_radius = police_vision_radius
         self.thief_vision_radius = thief_vision_radius
         self.victim_vision_radius = 1
+
+        self.police_attentiveness = police_attentiveness
+
+        self.risk = 1,
 
         self.schedule_Victim = RandomActivation(self)
         self.schedule_Thief = RandomActivation(self)
@@ -138,6 +148,18 @@ class BaseModel(mesa.Model):
         amount_of_people_local = len(local_people)
         local_grid_size = len(local_cells)
         return amount_of_people_local / local_grid_size
+
+    def get_police_attentiveness(self):
+        return self.police_attentiveness
+
+    def get_successful_thefts(self):
+        return self.datacollector.get_model_vars_dataframe()["Succesful"]
+
+    def get_caught_thieves(self):
+        return (
+            self.datacollector.get_model_vars_dataframe()["Attempts"]
+            - self.datacollector.get_model_vars_dataframe()["Succesful"]
+        )
 
     def step(self):
         """

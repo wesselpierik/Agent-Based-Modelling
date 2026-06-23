@@ -3,7 +3,7 @@ import SALib
 from mesa.batchrunner import BatchRunner
 import pandas as pd
 import numpy as np
-from SALib.sample import saltelli
+from SALib.sample import sobol
 from base_model import BaseModel
 from mesa.batchrunner import FixedBatchRunner
 from SALib.analyze import sobol
@@ -13,52 +13,66 @@ import matplotlib.pyplot as plt
 from itertools import combinations
 
 
-model_class = BaseModel
-
-problem = {
-    'num_vars': 4,
-    'names': ['victim_attentiveness', 'police_attentiveness', 'vision_radius', 'risk' ],
-    'bounds': [
-        [0.1, 1.0],   # victim attentiveness  (float)
-        [0.1, 1.0],   # police attentiveness (float)
-        [1, 20],       # vision radius
-        [1.0, 1.0]    # risk (float)
-    ]
-}
-
-replicates = 10
-max_steps = 100
-distinct_samples = 10
-
-param_values = saltelli.sample(problem, distinct_samples)
-
-# set the outputs
-model_reporters = {
-    "Successful_Thefts": lambda m: m.successful_thefts, 
-    "Thieves_Caught": lambda m: m.thieves_caught
-}
+import multiprocessing as mp
 
 
+def evaluate(sample):
+    succesful_thieves = np.empty(replicates, dtype=np.int64)
+    for i in range(replicates):
+        model = BaseModel(
+            police_vision_radius=sample[1],
+            thief_vision_radius=sample[2],
+            police_attentiveness=sample[0],
+        )
 
-data = {}
+        for _ in range(max_steps):
+            model.step()
 
-for i, var in enumerate(problem['names']):
-    # Get the bounds for this variable and get <distinct_samples> samples within this space (uniform)
-    samples = np.linspace(*problem['bounds'][i], num=distinct_samples)
-    
-    # Keep in mind that wolf_gain_from_food should be integers. You will have to change
-    # your code to acommodate for this or sample in such a way that you only get integers.
-    if var == 'wolf_gain_from_food':
-        samples = np.linspace(*problem['bounds'][i], num=distinct_samples, dtype=int)
-    
-    batch = FixedBatchRunner(BaseModel,
-                        max_steps=max_steps,
-                        iterations=replicates,
-                        parameters_list=[{var: value} for value in samples],
-                        fixed_parameters= None,
-                        model_reporters=model_reporters,
-                        display_progress=True)
-    
-    batch.run_all()
-    
-    data[var] = batch.get_model_vars_dataframe()
+        succesful_thieves[i] = model.get_successful_thefts().values[-1]
+
+    return np.mean(succesful_thieves)
+
+
+if __name__ == "__main__":
+    model_class = BaseModel
+
+    problem = {
+        "num_vars": 3,
+        "names": [
+            # "victim_attentiveness",
+            "police_attentiveness",
+            "police_vision_radius",
+            "thief_vision_radius",
+            # "risk",
+        ],
+        "bounds": [
+            # [0.1, 1.0],  # victim attentiveness  (float)
+            [0.1, 1.0],  # police attentiveness (float)
+            [1, 20],  # vision radius police
+            [3, 8],  # vision radius thief
+            # [0.1, 1.0],  # risk (float)
+        ],
+    }
+
+    replicates = 16
+    max_steps = 128
+    distinct_samples = 16
+
+    X = SALib.sample.sobol.sample(problem, distinct_samples)
+
+    # set the outputs
+    model_reporters = {
+        "Successful_Thefts": lambda m: m.get_successful_thefts(),
+        "Thieves_Caught": lambda m: m.get_caught_thieves(),
+    }
+
+    with mp.Pool() as pool:
+        Y = pool.map(evaluate, X)
+
+    Si = sobol.analyze(
+        problem,
+        np.array(Y).flatten(),
+        n_processors=16,
+        parallel=True,
+        print_to_console=True,
+    )
