@@ -62,7 +62,7 @@ def agent_portrayal(agent):
 
 
 # Create a grid of 10 by 10 cells, and display it as 500 by 500 pixels
-grid = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
+grid = CanvasGrid(agent_portrayal, 100, 100, 500, 500)
 
 # Create a dynamic linegraph
 chart = ChartModule(
@@ -85,7 +85,7 @@ attentiveness_dist = HistogramModule()
 
 # Create the server, and pass the grid and the graph
 server = ModularServer(
-    BaseModel, [grid, chart, chart2, attentiveness_dist], "BaseModel", {}
+    BaseModel, [grid, chart, chart2, attentiveness_dist], "BaseModel", {"height": 100, "width": 100}
 )
 
 server.port = 9042
