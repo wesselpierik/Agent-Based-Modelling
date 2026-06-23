@@ -60,7 +60,7 @@ class Thief(Person):
                     victim.attetiveness = max(0, victim.attentiveness - 0.1)
 
             # no attempt made
-            self.riskiness = min(1, self.riskiness + self.model.beta)
+            self.riskiness = min(1, self.riskiness * 1.1)
 
     def rob(
         self,
@@ -84,7 +84,7 @@ class Thief(Person):
 
         self.succesful_steals += 1
         other.was_robbed()
-        self.riskiness = self.riskyness = min(1, self.riskiness)
+        self.riskiness = min(1, self.riskiness + self.model.beta)
 
         # Update or create heatmap tile
         x, y = self.pos
