@@ -292,44 +292,41 @@ class Person(mesa.Agent):
 
         grid_height = self.model.grid.height
 
-        print(type(self.model.grid))
-        print(self.model.grid.width, self.model.grid.height)
-        print(self.pos)
-        print((int(self.pos[0]), int(self.pos[1]) - 1))
+        x, y = map(int, self.pos)
 
         # Movement up
         if self.direction == 1: 
             # Flip direction if at top of grid
-            if self.pos[1] + 1 >= grid_height:
+            if y + 1 >= grid_height:
                 self.direction = -1
                 return
             
             # Check if the cell above is empty
-            if (self.pos[0], self.pos[1] + 1) in neighbours:
-                contents = self.model.grid.get_cell_list_contents([(self.pos[0], self.pos[1] + 1)])
+            if (x, y + 1) in neighbours:
+                contents = self.model.grid.get_cell_list_contents([(x, y + 1)])
                 filter_tiles = [
                     agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
                 ]
                 # Move if cell is empty
                 if len(filter_tiles) == 0:
-                    self.model.grid.move_agent(self, (self.pos[0], self.pos[1] + 1))
+                    self.model.grid.move_agent(self, (x, y + 1))
                     return
 
         elif self.direction == -1:
             # Flip direction if at bottom of grid
-            if self.pos[1] - 1 < 0:
+            if y - 1 < 0:
                 self.direction = 1
                 return
             
             # Check if the cell below is empty
-            if (self.pos[0], self.pos[1] - 1) in neighbours:
-                contents = self.model.grid.get_cell_list_contents([(self.pos[0], self.pos[1] - 1)])
+            if (x, y - 1) in neighbours:
+                contents = self.model.grid.get_cell_list_contents([(x, y - 1)])
                 filter_tiles = [
                     agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
                 ]
                 # Move if cell is empty
                 if len(filter_tiles) == 0:
-                    self.model.grid.move_agent(self, (self.pos[0], self.pos[1] - 1))
+                    self.model.grid.move_agent(self, (x, y - 1))
                     return
 
     def get_wealth(self):
