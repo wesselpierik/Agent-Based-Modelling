@@ -1,7 +1,7 @@
 # Agent-based Modelling
 
 ## Group: 15
-* Finn Dokter
+* Finn Dokter (13680706)
 * Anna van Dun (14535734)
 * Luca van der Nooij
 * Wessel Pierik
