@@ -1,75 +1,97 @@
 import mesa
 import random
-from person import Person, HeatmapTile
-# from base_model import BaseModel
+import numpy as np
+from person import Person
 from victim import Victim
 from police import Police
+from heatmap import HeatmapTile
 
 
 class Thief(Person):
-    def __init__(self, unique_id, model, pos):
-        super().__init__(unique_id, model, pos)
-        self.riskyness = random.uniform(0,1)
+    def __init__(
+        self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
+    ) -> None:
+        super().__init__(unique_id, model, pos, vision_radius)
+        self.riskiness = np.random.uniform()
         self.succesful_steals = 0
         self.attempts = 0
 
     def step(self):
-        self.biased_move()
-        
+        self.move_to_crowd()
+
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
         potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
         if potential_victims:
-            best_victim = max(potential_victims, key=lambda v: -v.attentiveness + v.wealth)
-            if best_victim.attentiveness > 0.9:
-                return # no good options, move on
+            # sort victims based on how attractive they are
+            potential_victims.sort(
+                key=lambda v: -v.get_attentiveness() + v.get_wealth()
+            )
         else:
             return
-        
-        # Search for police in randius 3
-        neighbors = self.model.grid.get_neighbors(self.pos, moore=True, radius=round(self.model.width/5))
-        police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
 
-        # local busyness
-        local_cells = self.model.grid.get_neighborhood(
-            self.pos, 
-            moore=True, 
-            include_center=True, 
-            radius=10
+        # Search for police in vision radius
+        neighbors = self.model.grid.get_neighbors(
+            self.pos, moore=True, radius=int(self.vision_radius)
         )
-        local_contents = self.model.grid.get_cell_list_contents(local_cells)
-        local_people = [agent for agent in local_contents if not isinstance(agent, HeatmapTile)]
-        amount_of_people_local = len(local_people)
-        local_grid_size = len(local_cells)
-        busyness_parameter = amount_of_people_local / local_grid_size
-
+        police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
         if police_nearby:
-            police_parameter=0.8 
+            pol_att = police_nearby[0].get_attentiveness()
         else:
-            police_parameter=0
+            pol_att = 0
 
-        prob_caught = (0.8*police_parameter+0.2*(1-busyness_parameter))/2
-        if self.riskyness > prob_caught:
-            self.attempts += 1
-            if random.random() < prob_caught:
-                self.riskyness = max(0, self.riskyness-0.1)
-            else:
-                # succesful pickpocketing event
-                self.succesful_steals += 1
-                best_victim.attentiveness = max(1.0, best_victim.attentiveness + 0.5)
-                best_victim.robbed_timestamp = self.model.schedule.time 
-                self.riskyness = min(1, self.riskyness +0.05)
-                x, y = self.pos
-                self.model.crime_heatmap[x][y] += 1
-                cell_contents = self.model.grid.get_cell_list_contents([(x, y)])
-                tile_exists = any(isinstance(agent, HeatmapTile) for agent in cell_contents)
-                
-                # Only spawn a tile if this is the first crime in this cell!
-                if not tile_exists:
-                    # Pass the model object directly (self.model)
-                    new_tile = HeatmapTile(f"tile_{x}_{y}", self.model, (x, y))
-                    self.model.grid.place_agent(new_tile, (x, y))
+        # local business
+        business_parameter = self.get_local_business()
 
+        for victim in potential_victims:
+            loot = 5
+            fine = 2
+            vic_att = victim.get_attentiveness()
+            # calculation based on game theory
+            utility_thief = self.riskiness * loot * (1 - vic_att) * (
+                1 - pol_att
+            ) - fine * (vic_att + pol_att)
 
-if __name__ == "__main__":
-    model = BaseModel()
-    thief = Thief(1, model)
+            if utility_thief > 0:
+                self.rob(victim, vic_att, pol_att, business_parameter)
+                break
+
+            # no attempt made
+            self.riskiness = min(1, self.riskiness * 1.1)
+
+    def rob(
+        self,
+        other: Person,
+        victim_attentiveness: float,
+        police_attentiveness: float,
+        business_parameter: float,
+    ):
+        self.attempts += 1
+        succes = True
+        if random.random() < victim_attentiveness:
+            self.riskiness = max(0, self.riskiness * 0.5)
+            succes = False
+        if random.random() < police_attentiveness:
+            self.riskiness = max(0, self.riskiness * 0.5)
+            succes = False
+
+        # succesful pickpocketing event
+        if not succes:
+            return
+
+        self.succesful_steals += 1
+        other.was_robbed()
+        self.riskiness = min(1, self.riskiness + self.model.beta)
+
+        # Update or create heatmap tile
+        x, y = self.pos
+        self.model.crime_heatmap[x][y] += 1
+        cell_contents = self.model.grid.get_cell_list_contents([(x, y)])
+        tile_exists = any(isinstance(agent, HeatmapTile) for agent in cell_contents)
+
+        if not tile_exists:
+            new_tile = HeatmapTile(f"tile_{x}_{y}", self.model, (x, y))
+            self.model.grid.place_agent(new_tile, (x, y))
+            self.model.schedule.add(new_tile)
+
+    def move_to_wealth(self):
+        return super().move_to_wealth()

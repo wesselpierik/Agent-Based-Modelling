@@ -8,4 +8,5 @@ dependencies = [
     "ipython>=9.14.1",
     "matplotlib>=3.11.0",
     "mesa~=0.8.8",
+    "salib>=1.5.2",
 ]
