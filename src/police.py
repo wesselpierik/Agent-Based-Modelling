@@ -15,6 +15,9 @@ class Police(Person):
         # Choose initial moving direction, 1 for up, -1 for down
         self.direction = np.random.choice([-1, 1])
 
+        # Choose initial moving direction, 1 for up, -1 for down
+        self.direction = np.random.choice([-1, 1])
+
     def step(self):
         
         self.move() # Change to self.police_patrol_move() for patrol movement

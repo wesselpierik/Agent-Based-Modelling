@@ -21,7 +21,9 @@ class Person(mesa.Agent):
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
             filter_tiles = [
-                agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+                agent
+                for agent in contents
+                if not isinstance(agent, heatmap.HeatmapTile)
             ]
 
             if len(filter_tiles) == 0:
@@ -38,7 +40,9 @@ class Person(mesa.Agent):
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
             filter_tiles = [
-                agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+                agent
+                for agent in contents
+                if not isinstance(agent, heatmap.HeatmapTile)
             ]
 
             # If there are no physical people in the cell, it's safe to move there!
@@ -65,7 +69,9 @@ class Person(mesa.Agent):
             contents = self.model.grid.get_cell_list_contents([neighbour])
 
             filter_tiles = [
-                agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+                agent
+                for agent in contents
+                if not isinstance(agent, heatmap.HeatmapTile)
             ]
             if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
@@ -146,7 +152,9 @@ class Person(mesa.Agent):
             contents = self.model.grid.get_cell_list_contents([neighbour])
 
             filter_tiles = [
-                agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+                agent
+                for agent in contents
+                if not isinstance(agent, heatmap.HeatmapTile)
             ]
             if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
@@ -167,64 +175,38 @@ class Person(mesa.Agent):
             new_pos = min(empty_neighbours, key=lambda c: math.dist(c, m))
             self.model.grid.move_agent(self, new_pos)
 
-        pass
-        pass
+    def move_to_type(self, agent_type: type) -> None:
+        type_location = [
+            agent.pos
+            for agent in self.model.agents
+            if type(agent) is agent_type
+            and math.dist(self.pos, agent.pos) <= self.vision_radius
+        ]
 
-    def move_to_police(self):
-        # Biased movement where agent wants to move towards police presence
-        police_locations = []
-
-        for agent in self.model.agents:
-            if agent.__class__.__name__ == "Police":
-                police_locations.append(agent.pos)
-
-        # Get closest police location
-        closest_police = None
-        min_distance = 9999999
-
-        if len(police_locations) > 0:
-            for loc in police_locations:
-                distance = math.dist(self.pos, loc)
-                if distance < min_distance:
-                    min_distance = distance
-                    closest_police = loc
-
-        # Move towards closest police location
-        if closest_police is not None:
-            # Get neighbours (Moore neighbourhood)
-            neighbours = self.model.grid.get_neighborhood(self.pos, True)
-
-            # Check for empty neighbours
-            empty_neighbours = []
-            for neighbour in neighbours:
-                contents = self.model.grid.get_cell_list_contents([neighbour])
-
-                filter_tiles = [
-                    agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
-                ]
-                if len(filter_tiles) == 0:
-                    empty_neighbours.append(neighbour)
-
-            if len(empty_neighbours) == 0:
-                # No movement if there are no empty neighbours
-                return
-
-            else:
-                # Select neighbour that is closest to police location
-                closest_neighbour = None
-                min_distance = 9999999
-
-                for neighbour in empty_neighbours:
-                    distance = math.dist(neighbour, closest_police)
-                    if distance < min_distance:
-                        min_distance = distance
-                        closest_neighbour = neighbour
-
-                self.model.grid.move_agent(self, closest_neighbour)
-
-        else:
-            # Move randomly if there is no police
+        # There are no agents of agent_type in
+        if not type_location:
             self.move()
+            return
+
+        neighbours = self.model.grid.get_neighborhood(self.pos, True, radius=1)
+
+        empty_neighbours = self.empty_neighbourhood(neighbours)
+        if not empty_neighbours:
+            self.move()
+            return
+
+        average_pos = np.mean(type_location, axis=0)
+
+        closest_neighbor = None
+        min_dist = np.inf
+
+        for neighbour in empty_neighbours:
+            dist = math.dist(neighbour, average_pos)
+            if dist < min_dist:
+                min_dist = dist
+                closest_neighbor = neighbour
+
+        self.model.grid.move_agent(self, closest_neighbor)
 
     def apparent_wealth(self):
         return None
