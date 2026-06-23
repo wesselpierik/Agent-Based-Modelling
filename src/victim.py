@@ -15,7 +15,7 @@ class Victim(Person):
         self.attentiveness = np.random.uniform() 
         #TODO initial attentiveness aligns with wealth?
         self.robbed_timestamp = 0
-        self.recovery_time_threshold = 20
+        self.recovery_time_threshold = 50
         self.recovery_time_remaining = 0
         self._recovered_state = True
 

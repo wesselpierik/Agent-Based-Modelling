@@ -19,8 +19,7 @@ class Police(Person):
         self.direction = np.random.choice([-1, 1])
 
     def step(self):
-        
-        self.move() # Change to self.police_patrol_move() for patrol movement
+        self.police_patrol_move() # Change to self.police_patrol_move() for patrol movement
 
     def get_attentiveness(self):
         return self.attentiveness
