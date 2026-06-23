@@ -1,7 +1,6 @@
 from IPython.display import clear_output
 import SALib
 from mesa.batchrunner import BatchRunner
-import pandas as pd
 import numpy as np
 from SALib.sample import sobol
 from base_model import BaseModel
@@ -13,16 +12,23 @@ import matplotlib.pyplot as plt
 from itertools import combinations
 
 
+from tqdm import tqdm
+
+
 import multiprocessing as mp
 
 
 def evaluate(sample):
     succesful_thieves = np.empty(replicates, dtype=np.int64)
-    for i in range(replicates):
+    tk0 = tqdm(range(replicates), total=int(replicates), disable=None)
+    for i in tk0:
         model = BaseModel(
-            police_vision_radius=sample[1],
-            thief_vision_radius=sample[2],
-            police_attentiveness=sample[0],
+            n_police=sample[0],
+            loot=sample[1],
+            fine=sample[2],
+            police_vision_radius=sample[4],
+            thief_vision_radius=sample[5],
+            police_attentiveness=sample[3],
         )
 
         for _ in range(max_steps):
@@ -37,9 +43,12 @@ if __name__ == "__main__":
     model_class = BaseModel
 
     problem = {
-        "num_vars": 3,
+        "num_vars": 6,
         "names": [
             # "victim_attentiveness",
+            "n_police",
+            "loot",
+            "fine",
             "police_attentiveness",
             "police_vision_radius",
             "thief_vision_radius",
@@ -47,6 +56,9 @@ if __name__ == "__main__":
         ],
         "bounds": [
             # [0.1, 1.0],  # victim attentiveness  (float)
+            [1, 20],  # number of police
+            [2, 20],  # loot
+            [0.2, 7],  # fine
             [0.1, 1.0],  # police attentiveness (float)
             [1, 20],  # vision radius police
             [3, 8],  # vision radius thief
