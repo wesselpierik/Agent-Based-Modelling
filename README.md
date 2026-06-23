@@ -3,7 +3,7 @@
 ## Group: 15
 * Finn Dokter (13680706)
 * Anna van Dun (14535734)
-* Luca van der Nooij
+* Luca van der Nooij (14026554)
 * Wessel Pierik
 
 ## Project motivation
