@@ -44,9 +44,16 @@ class BaseModel(mesa.Model):
         self.beta = increase_riskiness
         self.delta = decay_attentiveness
 
+        self.police_attentiveness = police_attentiveness
+
+        self.risk = risk
+        self.alpha = increase_attentiveness
+        self.beta = increase_riskiness
+        self.delta = decay_attentiveness
+
+        self.schedule_Police = RandomActivation(self)
         self.schedule_Victim = RandomActivation(self)
         self.schedule_Thief = RandomActivation(self)
-        self.schedule_Police = RandomActivation(self)
 
         self.schedule = RandomActivation(self)
 
@@ -86,8 +93,8 @@ class BaseModel(mesa.Model):
         self.crime_heatmap = np.zeros((width, height))
 
         # Create initial population of agents
+        self.init_population_police_patrol(self.n_police)
         self.init_population(thief.Thief, self.n_thieves)
-        self.init_population(police.Police, self.n_police)
         self.init_population(victim.Victim, self.n_victims)
 
         self.running = True
@@ -144,6 +151,13 @@ class BaseModel(mesa.Model):
             if (i, j) in self.grid.empties:
                 self.add_agent(agent_type, (i, j))
                 agents_spawned += 1  # Only count successful spawns!
+
+    def init_population_police_patrol(self, n):
+        # Initial population when there is a fixed patrol route for police
+        j = [random.randint(0, self.grid.height - 1) for _ in range(n)]
+        i = np.linspace(5, self.grid.width - 6, n, dtype=int)
+        for k in range(n):
+            self.add_agent(police.Police, (i[k], j[k]))
 
     def get_local_business(self, pos: tuple[int, int]) -> float:
         local_cells = self.grid.get_neighborhood(
