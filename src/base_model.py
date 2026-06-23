@@ -6,8 +6,8 @@ import victim
 import police
 import thief
 from heatmap import HeatmapTile
-import random
 import numpy as np
+import random
 
 
 class BaseModel(mesa.Model):
@@ -157,7 +157,7 @@ class BaseModel(mesa.Model):
         j = [random.randint(0, self.grid.height - 1) for _ in range(n)]
         i = np.linspace(5, self.grid.width - 6, n, dtype=int)
         for k in range(n):
-            self.add_agent(police.Police, (i[k], j[k]))
+            self.add_agent(police.Police, (int(i[k]), int(j[k])))
 
     def get_local_business(self, pos: tuple[int, int]) -> float:
         local_cells = self.grid.get_neighborhood(
