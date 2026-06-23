@@ -285,6 +285,50 @@ class Person(mesa.Agent):
         # Biased movement of thieves when there is perceived police presence in the model
         pass
 
+    def police_patrol_move(self):
+        # Police have a patrol route, with a fixed pattern
+        # Get neighbours (Moore neighbourhood)
+        neighbours = self.model.grid.get_neighborhood(self.pos, True)
+
+        grid_height = self.model.grid.height
+
+        x, y = map(int, self.pos)
+
+        # Movement up
+        if self.direction == 1: 
+            # Flip direction if at top of grid
+            if y + 1 >= grid_height:
+                self.direction = -1
+                return
+            
+            # Check if the cell above is empty
+            if (x, y + 1) in neighbours:
+                contents = self.model.grid.get_cell_list_contents([(x, y + 1)])
+                filter_tiles = [
+                    agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+                ]
+                # Move if cell is empty
+                if len(filter_tiles) == 0:
+                    self.model.grid.move_agent(self, (x, y + 1))
+                    return
+
+        elif self.direction == -1:
+            # Flip direction if at bottom of grid
+            if y - 1 < 0:
+                self.direction = 1
+                return
+            
+            # Check if the cell below is empty
+            if (x, y - 1) in neighbours:
+                contents = self.model.grid.get_cell_list_contents([(x, y - 1)])
+                filter_tiles = [
+                    agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+                ]
+                # Move if cell is empty
+                if len(filter_tiles) == 0:
+                    self.model.grid.move_agent(self, (x, y - 1))
+                    return
+
     def get_wealth(self):
         raise NotImplementedError
 
