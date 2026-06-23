@@ -1,5 +1,6 @@
 import mesa
 from person import Person
+import numpy as np
 
 # from base_model import BaseModel
 
@@ -10,8 +11,14 @@ class Police(Person):
     ) -> None:
         super().__init__(unique_id, model, pos, vision_radius)
 
+        # Choose initial moving direction, 1 for up, -1 for down
+        self.direction = np.random.choice([-1, 1])
+
     def step(self):
-        self.move()
+        self.police_patrol_move()
 
     def get_attentiveness(self):
         return 1
+
+    def police_patrol_move(self):
+        return super().police_patrol_move()

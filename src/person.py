@@ -285,6 +285,53 @@ class Person(mesa.Agent):
         # Biased movement of thieves when there is perceived police presence in the model
         pass
 
+    def police_patrol_move(self):
+        # Police have a patrol route, with a fixed pattern
+        # Get neighbours (Moore neighbourhood)
+        neighbours = self.model.grid.get_neighborhood(self.pos, True)
+
+        grid_height = self.model.grid.height
+
+        print(type(self.model.grid))
+        print(self.model.grid.width, self.model.grid.height)
+        print(self.pos)
+        print((int(self.pos[0]), int(self.pos[1]) - 1))
+
+        # Movement up
+        if self.direction == 1: 
+            # Flip direction if at top of grid
+            if self.pos[1] + 1 >= grid_height:
+                self.direction = -1
+                return
+            
+            # Check if the cell above is empty
+            if (self.pos[0], self.pos[1] + 1) in neighbours:
+                contents = self.model.grid.get_cell_list_contents([(self.pos[0], self.pos[1] + 1)])
+                filter_tiles = [
+                    agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+                ]
+                # Move if cell is empty
+                if len(filter_tiles) == 0:
+                    self.model.grid.move_agent(self, (self.pos[0], self.pos[1] + 1))
+                    return
+
+        elif self.direction == -1:
+            # Flip direction if at bottom of grid
+            if self.pos[1] - 1 < 0:
+                self.direction = 1
+                return
+            
+            # Check if the cell below is empty
+            if (self.pos[0], self.pos[1] - 1) in neighbours:
+                contents = self.model.grid.get_cell_list_contents([(self.pos[0], self.pos[1] - 1)])
+                filter_tiles = [
+                    agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
+                ]
+                # Move if cell is empty
+                if len(filter_tiles) == 0:
+                    self.model.grid.move_agent(self, (self.pos[0], self.pos[1] - 1))
+                    return
+
     def get_wealth(self):
         raise NotImplementedError
 
