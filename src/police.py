@@ -10,14 +10,16 @@ class Police(Person):
         self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
     ) -> None:
         super().__init__(unique_id, model, pos, vision_radius)
-        self.attentiveness = 1
+        self.attentiveness = self.model.get_police_attentiveness()
+
+        # Choose initial moving direction, 1 for up, -1 for down
+        self.direction = np.random.choice([-1, 1])
 
         # Choose initial moving direction, 1 for up, -1 for down
         self.direction = np.random.choice([-1, 1])
 
     def step(self):
-        
-        self.move() # Change to self.police_patrol_move() for patrol movement
+        self.police_patrol_move() # Change to self.police_patrol_move() for patrol movement
 
     def get_attentiveness(self):
         return self.attentiveness

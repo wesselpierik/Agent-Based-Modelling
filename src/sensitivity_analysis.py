@@ -2,7 +2,7 @@ from IPython.display import clear_output
 import SALib
 from mesa.batchrunner import BatchRunner
 import numpy as np
-from SALib.sample import saltelli
+from SALib.sample import sobol
 from base_model import BaseModel
 from mesa.batchrunner import FixedBatchRunner
 from SALib.analyze import sobol
@@ -13,83 +13,80 @@ from itertools import combinations
 import os
 
 
-model_class = BaseModel
-
-problem = {
-    'num_vars': 4,
-    'names': [
-        'n_police',               # Matches your model's police parameter (Integer)
-        'decay_attentiveness',    # Matches delta_A (Float)
-        'increase_attentiveness', # Matches alpha (Float)
-        'increase_riskiness'      # Matches beta (Float)
-    ],
-    'bounds': [
-        [1, 30],       # n_police bounds (baseline: 5)
-        [0.01, 0.3],   # decay_attentiveness bounds (baseline: 0.1)
-        [0.1, 0.9],    # increase_attentiveness bounds (baseline: 0.5)
-        [0.01, 0.2]    # increase_riskiness bounds (baseline: 0.05)
-    ]
-}
-
-replicates = 10
-max_steps = 100
-distinct_samples = 16  # 2^4 
-
-# Generate the parameter sample matrix
-param_values = sobol.sample(problem, distinct_samples)
-
-# Unpack the generated array into a structured list of dictionaries
-parameters_list = []
-for row in param_values:
-    param_dict = {}
-    for i, var_name in enumerate(problem['names']):
-        val = row[i]
-        
-        # n_police must be integer
-        if var_name == 'n_police': 
-            val = int(np.round(val))
-            
-        param_dict[var_name] = val
-    parameters_list.append(param_dict)
-
-# Define outputs
-model_reporters = {
-    "Avg_Successful_Thefts": lambda m: (
-        sum([a.succesful_steals for a in m.schedule_Thief.agents]) / m.n_thieves 
-        if m.n_thieves > 0 else 0
-    ), 
-    "Avg_Attempted_Thefts": lambda m: (
-        sum([a.attempts for a in m.schedule_Thief.agents]) / m.n_thieves 
-        if m.n_thieves > 0 else 0
-    )
-}
+from tqdm import tqdm
 
 csv_filename = "sensitivity_analysis_results.csv"
 
-# Remove old results if restarting fresh
-if os.path.exists(csv_filename):
-    os.remove(csv_filename)
+import multiprocessing as mp
 
-for idx, params in enumerate(parameters_list):
-    batch = FixedBatchRunner(
-        BaseModel,
-        max_steps=max_steps,
-        iterations=replicates,
-        parameters_list=[params], 
-        fixed_parameters={
-            'width': 50,
-            'height': 50,
-            'num_targets': 1500,
-            'baseline_decay_prob': 0.01,
-            'decrease_riskiness': 0.09
-        },
-        model_reporters=model_reporters,
-        display_progress=True
+
+def evaluate(sample):
+    succesful_thieves = np.empty(replicates, dtype=np.int64)
+    tk0 = tqdm(range(replicates), total=int(replicates), disable=None)
+    for i in tk0:
+        model = BaseModel(
+            n_police=sample[0],
+            loot=sample[1],
+            fine=sample[2],
+            police_vision_radius=sample[4],
+            thief_vision_radius=sample[5],
+            police_attentiveness=sample[3],
+        )
+
+        for _ in range(max_steps):
+            model.step()
+
+        succesful_thieves[i] = model.get_successful_thefts().values[-1]
+
+    return np.mean(succesful_thieves)
+
+
+if __name__ == "__main__":
+    model_class = BaseModel
+
+    problem = {
+        "num_vars": 6,
+        "names": [
+            # "victim_attentiveness",
+            "n_police",
+            "loot",
+            "fine",
+            "police_attentiveness",
+            "police_vision_radius",
+            "thief_vision_radius",
+            # "risk",
+        ],
+        "bounds": [
+            # [0.1, 1.0],  # victim attentiveness  (float)
+            [1, 20],  # number of police
+            [2, 20],  # loot
+            [0.2, 7],  # fine
+            [0.1, 1.0],  # police attentiveness (float)
+            [1, 20],  # vision radius police
+            [3, 8],  # vision radius thief
+            # [0.1, 1.0],  # risk (float)
+        ],
+    }
+
+    replicates = 16
+    max_steps = 128
+    distinct_samples = 16
+
+    X = SALib.sample.sobol.sample(problem, distinct_samples)
+
+    # set the outputs
+    model_reporters = {
+        "Successful_Thefts": lambda m: m.get_successful_thefts(),
+        "Thieves_Caught": lambda m: m.get_caught_thieves(),
+    }
+
+    with mp.Pool() as pool:
+        Y = pool.map(evaluate, X)
+
+    Si = sobol.analyze(
+        problem,
+        np.array(Y).flatten(),
+        n_processors=16,
+        parallel=True,
+        print_to_console=True,
     )
-    
-    # Run the iterations for this specific configuration block
-    batch.run_all()
-    
-    # Extract the results and add to csv file
-    results = batch.get_model_vars_dataframe()
-    results.to_csv(csv_filename, mode='a', index=False, header=not os.path.exists(csv_filename))

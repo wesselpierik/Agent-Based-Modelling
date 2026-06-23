@@ -163,17 +163,18 @@ class Person(mesa.Agent):
             # No movement if there are no empty neighbours
             return
 
+        # Move to crowd
+        radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
+        contents =  self.model.grid.get_cell_list_contents(radius)
+        coords = [agent.pos for agent in contents if type(agent).__name__ == "Victim"]
+        if len(coords) == 0:
+            return
+        if len(coords) == 1:
+            m = coords[0]
         else:
-            # Move to crowd
-            radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
-            contents =  self.model.grid.get_cell_list_contents(radius)
-            coords = [agent.pos for agent in contents if type(agent).__name__ == "Victim"]
             m = tuple(map(float, np.mean(coords, axis=0)))
-            if len(coords) == 0:
-                return
-            m = tuple(map(float, np.mean(coords, axis=0)))
-            new_pos = min(empty_neighbours, key=lambda c: math.dist(c, m))
-            self.model.grid.move_agent(self, new_pos)
+        new_pos = min(empty_neighbours, key=lambda c: math.dist(c, m))
+        self.model.grid.move_agent(self, new_pos)
 
     def move_to_type(self, agent_type: type) -> None:
         type_location = [
@@ -282,7 +283,7 @@ class Person(mesa.Agent):
             if y + 1 >= grid_height:
                 self.direction = -1
                 return
-            
+
             # Check if the cell above is empty
             if (x, y + 1) in neighbours:
                 contents = self.model.grid.get_cell_list_contents([(x, y + 1)])
@@ -299,7 +300,7 @@ class Person(mesa.Agent):
             if y - 1 < 0:
                 self.direction = 1
                 return
-            
+
             # Check if the cell below is empty
             if (x, y - 1) in neighbours:
                 contents = self.model.grid.get_cell_list_contents([(x, y - 1)])

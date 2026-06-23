@@ -17,7 +17,7 @@ class Thief(Person):
         self.attempts = 0
 
     def step(self):
-        self.move()
+        self.move_to_crowd()
 
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
         potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
@@ -31,7 +31,7 @@ class Thief(Person):
 
         # Search for police in vision radius
         neighbors = self.model.grid.get_neighbors(
-            self.pos, moore=True, radius=self.vision_radius
+            self.pos, moore=True, radius=int(self.vision_radius)
         )
         police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
         if police_nearby:
