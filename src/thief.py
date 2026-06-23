@@ -54,10 +54,6 @@ class Thief(Person):
             if utility_thief > 0:
                 self.rob(victim, vic_att, pol_att, business_parameter)
                 break
-            else:
-                # no steal and victim does not notice:
-                if random.random() > vic_att * (1 - business_parameter):
-                    victim.attetiveness = max(0, victim.attentiveness - 0.1)
 
             # no attempt made
             self.riskiness = min(1, self.riskiness * 1.1)
