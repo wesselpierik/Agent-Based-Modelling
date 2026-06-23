@@ -10,6 +10,7 @@ class Police(Person):
         self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
     ) -> None:
         super().__init__(unique_id, model, pos, vision_radius)
+        self.attentiveness = 1
 
         # Choose initial moving direction, 1 for up, -1 for down
         self.direction = np.random.choice([-1, 1])
@@ -19,7 +20,7 @@ class Police(Person):
         self.move() # Change to self.police_patrol_move() for patrol movement
 
     def get_attentiveness(self):
-        return 1
+        return self.attentiveness
 
     def police_patrol_move(self):
         return super().police_patrol_move()

@@ -11,21 +11,23 @@ import random
 
 
 class BaseModel(mesa.Model):
-    def __init__(
-        self, width=50, height=50, police_vision_radius=8, thief_vision_radius=3
-    ):
+    def __init__(self, width=50, height=50, police_vision_radius=8, thief_vision_radius=3, n_police=5, decay_attentiveness=0.1, increase_attentiveness=0.5, increase_riskiness=0.05, **kwargs):
         super().__init__()
 
         self.height = height
         self.width = width
         self.n_thieves = 10
         self.n_victims = 1500
-        self.n_police = 5
+        self.n_police = n_police
 
         self.police_vision_radius = police_vision_radius
         self.thief_vision_radius = thief_vision_radius
         self.victim_vision_radius = 1
 
+        self.alpha = increase_attentiveness
+        self.beta = increase_riskiness
+        self.delta = decay_attentiveness
+        
         self.schedule_Police = RandomActivation(self)
         self.schedule_Victim = RandomActivation(self)
         self.schedule_Thief = RandomActivation(self)
@@ -54,8 +56,8 @@ class BaseModel(mesa.Model):
                     if isinstance(agent, victim.Victim)
                 )
                 / self.n_victims,
-                "Avg Riskyness": lambda m: sum(
-                    agent.riskyness
+                "Avg Riskiness": lambda m: sum(
+                    agent.riskiness
                     for agent in m.agents
                     if isinstance(agent, thief.Thief)
                 )
@@ -118,11 +120,14 @@ class BaseModel(mesa.Model):
         self.n_agents = len(self.agents)
 
     def init_population(self, agent_type, n):
-        for _ in range(n):
+        agents_spawned = 0
+        while agents_spawned < n:
             i = random.randint(0, self.grid.width - 1)
             j = random.randint(0, self.grid.height - 1)
+
             if (i, j) in self.grid.empties:
                 self.add_agent(agent_type, (i, j))
+                agents_spawned += 1  # Only count successful spawns!
 
     def init_population_police_patrol(self, n):
         # Initial population when there is a fixed patrol route for police
