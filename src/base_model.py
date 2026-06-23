@@ -68,7 +68,7 @@ class BaseModel(mesa.Model):
         self.crime_heatmap = np.zeros((width, height))
 
         # Create initial population of agents
-        self.init_population_police_patrol(self.n_police)
+        self.init_population(police.Police, self.n_police) # Change to self.init_population_police_patrol(self.n_police) for patrol movement
         self.init_population(thief.Thief, self.n_thieves)
         self.init_population(victim.Victim, self.n_victims)
 
