@@ -2,7 +2,7 @@ import mesa
 import mesa.space
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
-import victim
+import target
 import police
 import thief
 from heatmap import HeatmapTile
@@ -30,12 +30,12 @@ class BaseModel(mesa.Model):
         self.height = height
         self.width = width
         self.n_thieves = 20
-        self.n_victims = 3000
+        self.n_targets = 3000
         self.n_police = n_police * 4
 
         self.police_vision_radius = police_vision_radius
         self.thief_vision_radius = thief_vision_radius
-        self.victim_vision_radius = 1
+        self.target_vision_radius = 1
 
         self.police_attentiveness = police_attentiveness
 
@@ -52,7 +52,7 @@ class BaseModel(mesa.Model):
         self.delta = decay_attentiveness
 
         self.schedule_Police = RandomActivation(self)
-        self.schedule_Victim = RandomActivation(self)
+        self.schedule_Target = RandomActivation(self)
         self.schedule_Thief = RandomActivation(self)
 
         self.schedule = RandomActivation(self)
@@ -76,9 +76,9 @@ class BaseModel(mesa.Model):
                 "Avg Attentiveness": lambda m: sum(
                     agent.attentiveness
                     for agent in m.agents
-                    if isinstance(agent, victim.Victim)
+                    if isinstance(agent, target.Target)
                 )
-                / self.n_victims,
+                / self.n_targets,
                 "Avg Riskiness": lambda m: sum(
                     agent.riskiness
                     for agent in m.agents
@@ -95,7 +95,7 @@ class BaseModel(mesa.Model):
         # Create initial population of agents
         self.init_population_police_patrol(self.n_police) # Change to self.init_population_police_patrol(self.n_police) for patrol movement
         self.init_population(thief.Thief, self.n_thieves)
-        self.init_population(victim.Victim, self.n_victims)
+        self.init_population(target.Target, self.n_targets)
 
         self.running = True
         self.datacollector.collect(self)
@@ -104,8 +104,8 @@ class BaseModel(mesa.Model):
         match agent_type:
             case police.Police:
                 vision_radius = self.police_vision_radius
-            case victim.Victim:
-                vision_radius = self.victim_vision_radius
+            case target.Target:
+                vision_radius = self.target_vision_radius
             case thief.Thief:
                 vision_radius = self.thief_vision_radius
             case _:
@@ -189,7 +189,7 @@ class BaseModel(mesa.Model):
         """
         self.schedule_Police.step()
         self.schedule_Thief.step()
-        self.schedule_Victim.step()
+        self.schedule_Target.step()
         self.schedule.step()
         self.schedule.steps += 1
         self.schedule.time += 1

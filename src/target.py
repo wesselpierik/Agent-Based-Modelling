@@ -6,7 +6,7 @@ import numpy as np
 import random
 
 
-class Victim(Person):
+class Target(Person):
     def __init__(
         self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
     ) -> None:
@@ -32,7 +32,7 @@ class Victim(Person):
             self.model.schedule.time - self.robbed_timestamp > 5
             and random.random() < 0.01*(1-self.wealth)  # decay probability dependent of wealth
         ):
-            # potential victim gets less attentive after not being robbed for some time
+            # targets gets less attentive after not being robbed for some time
             self.attentiveness = max(0, self.attentiveness - self.model.delta)
 
     def move_to_police(self):
@@ -49,3 +49,9 @@ class Victim(Person):
         self.robbed_timestamp = self.model.schedule.time
         self.recovery_time_remaining = self.recovery_time_threshold
         self._recovered_state = False
+
+    def neighbor_was_robbed(self):
+        witness_shock = 0.15 # Neighbors get more alert, but less than the actual victim
+        # Increase their attentiveness and update their timestamp so they don't instantly decay
+        self.attentiveness = min(1.0, self.attentiveness + witness_shock)
+        self.robbed_timestamp = self.model.schedule.time 

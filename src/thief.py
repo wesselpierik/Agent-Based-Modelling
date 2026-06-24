@@ -2,7 +2,7 @@ import mesa
 import random
 import numpy as np
 from person import Person
-from victim import Victim
+from target import Target
 from police import Police
 from heatmap import HeatmapTile
 
@@ -20,10 +20,10 @@ class Thief(Person):
         self.move_to_crowd()
 
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
-        potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
-        if potential_victims:
-            # sort victims based on how attractive they are
-            potential_victims.sort(
+        targets = [obj for obj in neighbors if isinstance(obj, Target)]
+        if targets:
+            # sort targets based on how attractive they are
+            targets.sort(
                 key=lambda v: -v.get_attentiveness() + v.get_wealth()
             )
         else:
@@ -42,17 +42,17 @@ class Thief(Person):
         # local business
         business_parameter = self.get_local_business()
 
-        for victim in potential_victims:
+        for target in targets:
             loot = 5
             fine = 2
-            vic_att = victim.get_attentiveness()
+            vic_att = target.get_attentiveness()
             # calculation based on game theory
             utility_thief = self.riskiness * loot * (1 - vic_att) * (
                 1 - pol_att
             ) - fine * (vic_att + pol_att)
 
             if utility_thief > 0:
-                self.rob(victim, vic_att, pol_att, business_parameter)
+                self.rob(target, vic_att, pol_att, business_parameter)
                 break
 
             # no attempt made
@@ -61,13 +61,13 @@ class Thief(Person):
     def rob(
         self,
         other: Person,
-        victim_attentiveness: float,
+        target_attentiveness: float,
         police_attentiveness: float,
         business_parameter: float,
     ):
         self.attempts += 1
         succes = True
-        if random.random() < victim_attentiveness:
+        if random.random() < target_attentiveness:
             self.riskiness = max(0, self.riskiness * 0.5)
             succes = False
         if random.random() < police_attentiveness:
@@ -79,8 +79,19 @@ class Thief(Person):
             return
 
         self.succesful_steals += 1
-        other.was_robbed()
+        other.was_robbed() 
+
+        # # Alert nearby targets who witnessed it
+        # witness_radius = 8  
+        # nearby_agents = self.model.grid.get_neighbors(self.pos, moore=True, radius=witness_radius)
+
+        # for agent in nearby_agents:
+        #     if isinstance(agent, Target) and agent != other:
+        #         agent.neighbor_was_robbed()
+
+        # thief gets riskier after success
         self.riskiness = min(1, self.riskiness + self.model.beta)
+  
 
         # Update or create heatmap tile
         x, y = self.pos

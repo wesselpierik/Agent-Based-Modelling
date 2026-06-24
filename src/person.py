@@ -85,7 +85,7 @@ class Person(mesa.Agent):
             agent_type = self.__class__.__name__
 
             # Biased moevement for thieves
-            # Move to neighbour with most potential victims as neighbours (Moore neighbourhood)
+            # Move to neighbour with most targets as neighbours (Moore neighbourhood)
             if agent_type == "Thief":
                 n_passerby_neighbour = []
                 for neighbour in empty_neighbours:
@@ -102,7 +102,7 @@ class Person(mesa.Agent):
                         )
                         passerby_count = 0
 
-                        # For each neighbour of the neighbour, count the number of potential victims
+                        # For each neighbour of the neighbour, count the number of targets
                         for n in neighbours_of_neighbour:
                             contents = self.model.grid.get_cell_list_contents([n])
                             filter_tiles = [
@@ -112,7 +112,7 @@ class Person(mesa.Agent):
                             ]
 
                             for content in filter_tiles:
-                                if content.__class__.__name__ == "Victim":
+                                if content.__class__.__name__ == "Target":
                                     passerby_count += 1
 
                         n_passerby_neighbour.append((neighbour, passerby_count))
@@ -121,7 +121,7 @@ class Person(mesa.Agent):
                         # Skip neighhbour if it is not empty
                         continue
 
-                # Select neighbour with most potential victims
+                # Select neighbour with most targets
                 if len(n_passerby_neighbour) > 0:
                     values = [x[1] for x in n_passerby_neighbour]
                     max_value = max(values)
@@ -166,7 +166,7 @@ class Person(mesa.Agent):
         # Move to crowd
         radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
         contents =  self.model.grid.get_cell_list_contents(radius)
-        coords = [agent.pos for agent in contents if type(agent).__name__ == "Victim"]
+        coords = [agent.pos for agent in contents if type(agent).__name__ == "Target"]
         if len(coords) == 0:
             return
         if len(coords) == 1:
@@ -213,7 +213,7 @@ class Person(mesa.Agent):
         return None
 
     def move_to_wealth(self):
-        # Agents move towards victims with higher apparent wealth
+        # Agents move towards targets with higher apparent wealth
         # Get neighbours (Moore neighbourhood)
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
         empty_neighbours = self.empty_neighbourhood(neighbours)
@@ -241,7 +241,7 @@ class Person(mesa.Agent):
                     ]
 
                     for content in filter_tiles:
-                        if content.__class__.__name__ == "Victim":
+                        if content.__class__.__name__ == "Target":
                             apparent_wealth.append(content.get_wealth())
 
                 if len(apparent_wealth) > 0:

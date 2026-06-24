@@ -47,7 +47,7 @@ if __name__ == "__main__":
     problem = {
         "num_vars": 6,
         "names": [
-            # "victim_attentiveness",
+            # "target_attentiveness",
             "n_police",
             "loot",
             "fine",
@@ -57,7 +57,7 @@ if __name__ == "__main__":
             # "risk",
         ],
         "bounds": [
-            # [0.1, 1.0],  # victim attentiveness  (float)
+            # [0.1, 1.0],  # target attentiveness  (float)
             [1, 32],  # number of police
             [2, 20],  # loot
             [0.2, 7],  # fine

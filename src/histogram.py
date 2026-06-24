@@ -1,7 +1,7 @@
 import io
 import base64
 import numpy as np
-from victim import Victim
+from target import Victim
 
 import matplotlib
 matplotlib.use('Agg') 
