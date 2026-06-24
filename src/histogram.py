@@ -1,7 +1,7 @@
 import io
 import base64
 import numpy as np
-from target import Victim
+from target import Target
 
 import matplotlib
 matplotlib.use('Agg') 
@@ -13,21 +13,21 @@ class HistogramModule(TextElement):
         super().__init__()
 
     def render(self, model):
-        # Dynamically extract attentiveness values from your Victim agents
+        # Dynamically extract attentiveness values from targets
         values = [
             agent.attentiveness 
             for agent in model.agents 
-            if hasattr(agent, 'attentiveness') and type(agent).__name__ == "Victim"
+            if hasattr(agent, 'attentiveness') and type(agent).__name__ == "Target"
         ]
 
         fig, ax = plt.subplots(figsize=(6, 3.5))
         ax.hist(values, bins=np.linspace(0, 1, 11), color="brown", edgecolor="white", alpha=0.8)
 
         ax.set_xlim(0, 1)
-        ax.set_ylim(0, model.n_victims//2)
-        ax.set_title("Victim Attentiveness Distribution", fontsize=12, fontweight='bold')
+        ax.set_ylim(0, model.n_targets//2)
+        ax.set_title("Target Attentiveness Distribution", fontsize=12, fontweight='bold')
         ax.set_xlabel("Attentiveness Score")
-        ax.set_ylabel("Number of Victims")
+        ax.set_ylabel("Number of Targets")
         ax.grid(axis='y', alpha=0.2)
         
         buf = io.BytesIO()
