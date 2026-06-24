@@ -56,7 +56,7 @@ class Thief(Person):
                 break
 
             # no attempt made
-            self.riskiness = min(1, self.riskiness * 1.1)
+            self.riskiness = min(1, self.riskiness * 1.05)
 
     def rob(
         self,
