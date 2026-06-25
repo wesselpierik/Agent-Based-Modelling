@@ -23,7 +23,7 @@ import multiprocessing as mp
 
 # ctx = mp.get_context("spawn")
 
-replicates = 1
+replicates = 8
 max_steps = 500
 distinct_samples = 2
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
         plt.xlabel("n_police")
         plt.ylabel("thief_vision_radius")
-        plt.title("Response surface")
+        plt.title("Successful thefts for different parameter pairs")
 
         plt.savefig("n_police vs thief vision.png", bbox_inches="tight")
 
