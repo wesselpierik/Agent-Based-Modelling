@@ -31,7 +31,7 @@ class BaseModel(mesa.Model):
 
         self.height = height
         self.width = width
-        self.n_thieves = 20
+        self.n_thieves = 5
         self.n_victims = 1500
         self.n_police = n_police
 
