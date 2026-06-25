@@ -51,7 +51,7 @@ def agent_portrayal(agent):
             "Color": (
                 "red"
                 if type(agent) is Thief
-                else "green" if type(agent) is Target else "blue"
+                else  "#6ab956" if type(agent) is Target else "blue"
             ),
             "Filled": "true",
             "Layer": 1,
@@ -95,6 +95,6 @@ server = ModularServer(
     BaseModel, [grid, chart, chart2, chart3, attentiveness_dist], "BaseModel", {"height": 100, "width": 100}
 )
 
-server.port = 9049
+server.port = 9003
 
 server.launch()
