@@ -23,6 +23,8 @@ class BaseModel(mesa.Model):
         decay_attentiveness=0.1,
         increase_attentiveness=0.5,
         increase_riskiness=0.05,
+        loot=5,
+        fine=2,
         **kwargs,
     ):
         super().__init__()
@@ -30,8 +32,8 @@ class BaseModel(mesa.Model):
         self.height = height
         self.width = width
         self.n_thieves = 20
-        self.n_victims = 3000
-        self.n_police = n_police * 4
+        self.n_victims = 1500
+        self.n_police = n_police
 
         self.police_vision_radius = police_vision_radius
         self.thief_vision_radius = thief_vision_radius
@@ -44,12 +46,8 @@ class BaseModel(mesa.Model):
         self.beta = increase_riskiness
         self.delta = decay_attentiveness
 
-        self.police_attentiveness = police_attentiveness
-
-        self.risk = risk
-        self.alpha = increase_attentiveness
-        self.beta = increase_riskiness
-        self.delta = decay_attentiveness
+        self.loot = loot
+        self.fine = fine
 
         self.schedule_Police = RandomActivation(self)
         self.schedule_Victim = RandomActivation(self)
@@ -93,7 +91,9 @@ class BaseModel(mesa.Model):
         self.crime_heatmap = np.zeros((width, height))
 
         # Create initial population of agents
-        self.init_population_police_patrol(self.n_police) # Change to self.init_population_police_patrol(self.n_police) for patrol movement
+        self.init_population_police_patrol(
+            self.n_police
+        )  # Change to self.init_population_police_patrol(self.n_police) for patrol movement
         self.init_population(thief.Thief, self.n_thieves)
         self.init_population(victim.Victim, self.n_victims)
 
@@ -182,6 +182,12 @@ class BaseModel(mesa.Model):
             self.datacollector.get_model_vars_dataframe()["Attempts"]
             - self.datacollector.get_model_vars_dataframe()["Succesful"]
         )
+
+    def get_loot(self):
+        return self.loot
+
+    def get_fine(self):
+        return self.fine
 
     def step(self):
         """

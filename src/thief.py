@@ -16,6 +16,9 @@ class Thief(Person):
         self.succesful_steals = 0
         self.attempts = 0
 
+        self.loot = model.get_loot()
+        self.fine = model.get_fine()
+
     def step(self):
         self.move_to_crowd()
 
@@ -43,8 +46,8 @@ class Thief(Person):
         business_parameter = self.get_local_business()
 
         for victim in potential_victims:
-            loot = 5
-            fine = 2
+            loot = self.loot
+            fine = self.fine
             vic_att = victim.get_attentiveness()
             # calculation based on game theory
             utility_thief = self.riskiness * loot * (1 - vic_att) * (

@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 from itertools import combinations
 import os
 
+from mpi4py import MPI
+
 
 from tqdm import tqdm
 
@@ -19,10 +21,38 @@ csv_filename = "sensitivity_analysis_results.csv"
 
 import multiprocessing as mp
 
+replicates = 8
+max_steps = 400
+distinct_samples = 4096
+
+problem = {
+    "num_vars": 6,
+    "names": [
+        # "victim_attentiveness",
+        "n_police",
+        "loot",
+        "fine",
+        "police_attentiveness",
+        "police_vision_radius",
+        "thief_vision_radius",
+        # "risk",
+    ],
+    "bounds": [
+        # [0.1, 1.0],  # victim attentiveness  (float)
+        [1, 32],  # number of police
+        [2, 20],  # loot
+        [0.2, 7],  # fine
+        [0.1, 1.0],  # police attentiveness (float)
+        [1, 20],  # vision radius police
+        [3, 8],  # vision radius thief
+        # [0.1, 1.0],  # risk (float)
+    ],
+}
+
 
 def evaluate(sample):
     succesful_thieves = np.empty(replicates, dtype=np.int64)
-    tk0 = tqdm(range(replicates), total=int(replicates), disable=None)
+    tk0 = tqdm(range(replicates), total=int(replicates), disable=False)
     for i in tk0:
         model = BaseModel(
             n_police=int(sample[0]),
@@ -41,52 +71,77 @@ def evaluate(sample):
     return np.mean(succesful_thieves)
 
 
-if __name__ == "__main__":
-    model_class = BaseModel
+# MPI setup
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
 
-    problem = {
-        "num_vars": 6,
-        "names": [
-            # "victim_attentiveness",
-            "n_police",
-            "loot",
-            "fine",
-            "police_attentiveness",
-            "police_vision_radius",
-            "thief_vision_radius",
-            # "risk",
-        ],
-        "bounds": [
-            # [0.1, 1.0],  # victim attentiveness  (float)
-            [1, 32],  # number of police
-            [2, 20],  # loot
-            [0.2, 7],  # fine
-            [0.1, 1.0],  # police attentiveness (float)
-            [1, 20],  # vision radius police
-            [3, 8],  # vision radius thief
-            # [0.1, 1.0],  # risk (float)
-        ],
-    }
-
-    replicates = 16
-    max_steps = 128
-    distinct_samples = 16
-
+if rank == 0:
     X = SALib.sample.sobol.sample(problem, distinct_samples)
 
-    # set the outputs
-    model_reporters = {
-        "Successful_Thefts": lambda m: m.get_successful_thefts(),
-        "Thieves_Caught": lambda m: m.get_caught_thieves(),
-    }
+    chunks = np.array_split(X, size)
+else:
+    chunks = None
 
-    with mp.Pool() as pool:
-        Y = pool.map(evaluate, X)
+local_X = comm.scatter(chunks, root=0)
+
+print(f"Rank {rank}: received {len(local_X)} samples")
+
+n_workers = int(os.environ.get("SLURM_CPUS_PER_TASK", mp.cpu_count()))
+
+if rank == 0:
+    print(f"Using {n_workers} local workers per node")
+
+with mp.Pool(processes=n_workers) as pool:
+    local_Y = list(pool.imap_unordered(evaluate, local_X))
+    print(f"Rank {rank} finished {len(local_Y)} evaluations")
+
+all_Y = comm.gather(local_Y, root=0)
+
+if rank == 0:
+    Y = np.concat(all_Y)
+    print(f"\nCollected {len(Y)} outputs")
 
     Si = sobol.analyze(
         problem,
-        np.array(Y).flatten(),
+        Y,
         n_processors=16,
         parallel=True,
         print_to_console=True,
     )
+
+    ST = Si["ST"]
+    ST_conf = Si["ST_conf"]
+    S1 = Si["S1"]
+    S1_conf = Si["S1_conf"]
+    S2 = Si["S2"]
+    S2_conf = Si["S2_conf"]
+
+    with open("sobol_results.txt", "w") as f:
+        f.write("=== MODEL SETTINGS ===\n")
+        f.write(f"replicates = {replicates}\n")
+        f.write(f"max_steps = {max_steps}\n")
+        f.write(f"distinct_samples = {distinct_samples}\n\n")
+
+        f.write("=== PROBLEM DEFINITION ===\n")
+        f.write(str(problem) + "\n\n")
+
+        f.write("=== SOBOL RESULTS ===\n")
+        f.write(str(ST) + "\n")
+        f.write("ST_conf:\n")
+        f.write(str(ST_conf) + "\n")
+
+        f.write("\nS1:\n")
+        f.write(str(S1) + "\n")
+        f.write("S1_conf:\n")
+        f.write(str(S1_conf) + "\n")
+
+        f.write("\nS2:\n")
+        f.write(str(S2) + "\n")
+        f.write("S2_conf:\n")
+        f.write(str(S2_conf) + "\n")
+
+comm.Barrier()
+
+if rank == 0:
+    print("Finished\n")
