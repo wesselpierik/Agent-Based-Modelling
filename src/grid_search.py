@@ -21,7 +21,7 @@ csv_filename = "sensitivity_analysis_results.csv"
 
 import multiprocessing as mp
 
-ctx = mp.get_context("spawn")
+# ctx = mp.get_context("spawn")
 
 replicates = 1
 max_steps = 500
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     if rank == 0:
         print(f"Using {n_workers} local workers per node")
 
-    with ctx.Pool(processes=n_workers) as pool:
+    with mp.Pool(processes=n_workers) as pool:
         # tqdm wrapper around iterator
         results_iter = pool.imap(evaluate, local_X)
 
