@@ -23,9 +23,9 @@ import multiprocessing as mp
 
 ctx = mp.get_context("spawn")
 
-replicates = 8
+replicates = 1
 max_steps = 500
-distinct_samples = 4
+distinct_samples = 2
 
 problem = {
     "num_vars": 6,
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     with ctx.Pool(processes=n_workers) as pool:
         # tqdm wrapper around iterator
-        results_iter = pool.imap_unordered(evaluate, local_X)
+        results_iter = pool.imap(evaluate, local_X)
 
         local_Y = []
 
