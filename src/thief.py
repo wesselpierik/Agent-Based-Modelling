@@ -11,12 +11,29 @@ class Thief(Person):
     def __init__(
         self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
     ) -> None:
+        """
+        Initializes a Thief agent
+
+        Args:
+            unique_id (int): A unique identifier for the agent.
+            model (Model): The  Mesa simulation model.
+            pos (tuple[int, int]): Initial (x, y) coordinates on the grid.
+            vision_radius (int): Maximum grid distance the thief can see police.
+        """
         super().__init__(unique_id, model, pos, vision_radius)
         self.riskiness = np.random.uniform()
         self.succesful_steals = 0
         self.attempts = 0
 
-    def step(self):
+    def step(self) -> None:
+        """
+        Executes the Thief's behavior turn during a model step.
+          1. Move toward most crowded zone.
+          2. Evaluate surrounding targets sorted by high wealth and low attentiveness.
+          3. Scan the vision radius for police presence.
+          4. Calculate game-theoretic utility for a theft attempt; execute if utility > 0.
+          5. Dynamically increase riskiness if no attempt is made.
+        """
         self.move_to_crowd()
 
         neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
@@ -65,6 +82,18 @@ class Thief(Person):
         police_attentiveness: float,
         business_parameter: float,
     ):
+        """
+        Executes a robbery attempt against a chosen target.
+        The success probability dependent on both target and police attentiveness.
+        Failing a robbery decreases thief riskiness. Successfully executing 
+        a robbery alerts the target, increases thief confidence, and logs a heatmap point.
+
+        Args:
+            other (Person): The Target agent that is being robbed.
+            target_attentiveness (float): The target's current awareness score.
+            police_attentiveness (float): The local police officer's attentiveness score.
+            business_parameter (float): The density proxy score of the local area.
+        """
         self.attempts += 1
         succes = True
         if random.random() < target_attentiveness:
@@ -90,7 +119,7 @@ class Thief(Person):
         #         agent.neighbor_was_robbed()
 
         # thief gets riskier after success
-        self.riskiness = min(1, self.riskiness + self.model.beta)
+        self.riskiness = min(1, self.riskiness + 0.05)
   
 
         # Update or create heatmap tile
@@ -104,5 +133,5 @@ class Thief(Person):
             self.model.grid.place_agent(new_tile, (x, y))
             self.model.schedule.add(new_tile)
 
-    def move_to_wealth(self):
+    def move_to_wealth(self) -> None:
         return super().move_to_wealth()
