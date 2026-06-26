@@ -6,9 +6,17 @@
 * Luca van der Nooij (14026554)
 * Wessel Pierik
 
+
 ## Project motivation
+In the field of criminology, agent-based models are a relatively new method of simulating crimes. Pickpocketing, the act of stealing another person's belongings in a public space, is a widespread problem, especially in highly touristic spaces. A pickpocket might decide to steal from someone depending on their observations, for example, whether there is a police officer nearby or the perceived wealth of the pickpocket's target. The main goal of this research is to look at the influence of such parameters on the success and frequency of pickpocketing events.
 
 ## Short project summary
+The model contains three agents: pickpockets, potential victims and police officers. The environment is a discretised lattice. Each lattice cell can contain one ageny, and a thief agent can attempt a pickpocketing event when a target agent is within the Moore neighbourhood of the pickpocket. As stated before, the probability that a pickpocketing attempt is made is dependent on a number of parameters, which are dependent on the agents. 
+
+The movement of the are varied. In general, each agent will move one lattice cell at each time step. If a passer-by is successfully pick-pocketed, their attentiveness will increase, and they will move close to a police officer. A thief moves towards crowds, and if he is caught, he gets more cautious. Police move in patrols up and down the grid.
+
+An agent-based Model is the best technique for the project, because it supports both heterogeneity and spatial dependence by allowing individual agents to interact locally with each other and their environment.
+
 
 ## Libraries
 For the required dependencies, and their versions, see pyproject.toml.
@@ -54,7 +62,7 @@ To run the simulation, use:
 You will then be directed to an external browser, where the simulation can be run, and the resulting time-dependent graphs are shown. Before running the simulation, the number of frames per second can be specified through a slider. The simulation can be started, stopped and reset using the ```start```, ```stop``` and ```reset``` buttons, respectively. A single step can be computed using the ```step``` button.
 
 The first graph shows the number of stealing attempts (red) and succesful attempts (green) as a function of time steps.
-The second graph shows the average attentiveness of the targets (red) and the average riskiness of the offenders (blue) as a function of time steps.
+The second graph shows the average attentiveness of the targets (red) and the average riskiness of the offenders (blue) as a function of time steps. The third graph shows the current distribution of attentiveness among the target agents.
 
 To run the sensitivity analysis, use:
 
