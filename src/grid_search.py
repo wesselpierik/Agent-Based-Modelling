@@ -122,7 +122,7 @@ def mesh_grid_generation(x_vals_name, y_vals_name, n_grid):
     tasks = [(sample, x_vals_name, y_vals_name) for sample in X]
 
     with mp.Pool(processes=n_workers) as pool:
-        chunksize = max(1, len(tasks // n_workers))
+        chunksize = max(1, len(tasks) // n_workers)
         results_iter = pool.imap(evaluate, tasks, chunksize=chunksize)
 
         Y = []
