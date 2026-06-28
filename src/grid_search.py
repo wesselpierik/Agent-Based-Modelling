@@ -1,31 +1,14 @@
-from IPython.display import clear_output
-import SALib
-from mesa.batchrunner import BatchRunner
-import numpy as np
-from SALib.sample import sobol
 from base_model import BaseModel
-from mesa.batchrunner import FixedBatchRunner
-from SALib.analyze import sobol
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from itertools import combinations
 import os
-
 from mpi4py import MPI
-
-
 from tqdm import tqdm
-
-csv_filename = "sensitivity_analysis_results.csv"
-
 import multiprocessing as mp
 
-# ctx = mp.get_context("spawn")
-
-replicates = 8
+replicates = 32
 max_steps = 500
-distinct_samples = 2
 
 problem = {
     "num_vars": 6,
@@ -46,7 +29,7 @@ problem = {
         [0.2, 7],  # fine
         [0.1, 1.0],  # police attentiveness (float)
         [1, 20],  # vision radius police
-        [3, 8],  # vision radius thief
+        [1, 20],  # vision radius thief
         # [0.1, 1.0],  # risk (float)
     ],
 }
@@ -77,7 +60,7 @@ baseline = {
     "fine": 2,
     "police_attentiveness": 0.8,
     "police_vision_radius": 8,
-    "thief_vision_radius": 8,
+    "thief_vision_radius": 3,
 }
 
 
