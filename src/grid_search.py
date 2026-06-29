@@ -46,10 +46,10 @@ parameter_names = [
 bounds = [
     (1, 32),  # number of police
     (2, 20),  # loot
-    (0.2, 7),  # fine
+    (0.2, 20),  # fine
     (0.1, 1.0),  # police attentiveness (float)
     (1, 20),  # vision radius police
-    (3, 8),  # vision radius thief
+    (1, 20),  # vision radius thief
 ]
 
 param_bounds_dict = {name: bound for name, bound in zip(parameter_names, bounds)}
