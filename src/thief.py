@@ -68,7 +68,7 @@ class Thief(Person):
         business_parameter: float,
     ):
         police_vision = self.model.police_vision_radius
-        neighbors = self.model.grid.get_neighbours(
+        neighbors = self.model.grid.get_neighbors(
             self.pos, moore=True, radius=int(police_vision)
         )
         police = [obj for obj in neighbors if isinstance(obj, Police)]
