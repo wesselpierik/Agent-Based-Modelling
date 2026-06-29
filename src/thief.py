@@ -22,8 +22,8 @@ class Thief(Person):
     def step(self):
         self.move_to_crowd()
 
-        neighbors = self.model.grid.get_neighbors(self.pos, moore=True)
-        potential_victims = [obj for obj in neighbors if isinstance(obj, Victim)]
+        neighbors_in_vision = self.model.grid.get_neighbors(self.pos, moore=True)
+        potential_victims = [obj for obj in neighbors_in_vision if isinstance(obj, Victim)]
         if potential_victims:
             # sort victims based on how attractive they are
             potential_victims.sort(
@@ -33,14 +33,14 @@ class Thief(Person):
             return
 
         # Search for police in vision radius
-        neighbors = self.model.grid.get_neighbors(
+        neighbors_in_vision = self.model.grid.get_neighbors(
             self.pos, moore=True, radius=int(self.vision_radius)
         )
-        police_nearby = [obj for obj in neighbors if isinstance(obj, Police)]
-        if police_nearby:
-            pol_att = police_nearby[0].get_attentiveness()
+        police_in_vision = [obj for obj in neighbors_in_vision if isinstance(obj, Police)]
+        if police_in_vision:
+            pol_att_utility_func = police_in_vision[0].get_attentiveness()
         else:
-            pol_att = 0
+            pol_att_utility_func = 0
 
         # local business
         business_parameter = self.get_local_business()
@@ -51,11 +51,11 @@ class Thief(Person):
             vic_att = victim.get_attentiveness()
             # calculation based on game theory
             utility_thief = self.riskiness * loot * (1 - vic_att) * (
-                1 - pol_att
-            ) - fine * (vic_att + pol_att)
+                1 - pol_att_utility_func
+            ) - fine * (vic_att + pol_att_utility_func)
 
             if utility_thief > 0:
-                self.rob(victim, vic_att, pol_att, business_parameter)
+                self.rob(victim, vic_att, business_parameter)
                 break
 
             # no attempt made
@@ -65,9 +65,15 @@ class Thief(Person):
         self,
         other: Person,
         victim_attentiveness: float,
-        police_attentiveness: float,
         business_parameter: float,
     ):
+        police_vision = self.model.police_vision_radius
+        neighbors = self.model.grid.get_neighbours(
+            self.pos, moore=True, radius=int(police_vision)
+        )
+        police = [obj for obj in neighbors if isinstance(obj, Police)]
+        police_attentiveness = police[0].get_attentiveness() if police else 0
+
         self.attempts += 1
         succes = True
         if random.random() < victim_attentiveness:
