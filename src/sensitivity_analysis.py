@@ -1,31 +1,53 @@
-from IPython.display import clear_output
 import SALib
-from mesa.batchrunner import BatchRunner
 import numpy as np
 from SALib.sample import sobol
 from base_model import BaseModel
-from mesa.batchrunner import FixedBatchRunner
-from SALib.analyze import sobol
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from itertools import combinations
 import os
-
-
+from mpi4py import MPI
 from tqdm import tqdm
-
-csv_filename = "sensitivity_analysis_results.csv"
-
 import multiprocessing as mp
 
+ctx = mp.get_context("spawn")
 
-def evaluate(sample):
+replicates = 1
+max_steps = 50
+distinct_samples = 4
+
+problem = {
+    "num_vars": 6,
+    "names": [
+        # "victim_attentiveness",
+        "n_police",
+        "loot",
+        "fine",
+        "police_attentiveness",
+        "police_vision_radius",
+        "thief_vision_radius",
+        # "risk",
+    ],
+    "bounds": [
+        # [0.1, 1.0],  # victim attentiveness  (float)
+        [1, 32],  # number of police
+        [2, 20],  # loot
+        [0.2, 7],  # fine
+        [0.1, 1.0],  # police attentiveness (float)
+        [1, 20],  # vision radius police
+        [3, 8],  # vision radius thief
+        # [0.1, 1.0],  # risk (float)
+    ],
+}
+
+
+def evaluate(sample: tuple[float, float, float, float, float, float]) -> float:
     succesful_thieves = np.empty(replicates, dtype=np.int64)
-    tk0 = tqdm(range(replicates), total=int(replicates), disable=None)
+
+    # Create a pretty progress bar
+    tk0 = tqdm(range(replicates), total=int(replicates), disable=False)
+
+    # Run the model multiple times
     for i in tk0:
         model = BaseModel(
-            n_police=sample[0],
+            n_police=int(sample[0]),
             loot=sample[1],
             fine=sample[2],
             police_vision_radius=sample[4],
@@ -33,6 +55,7 @@ def evaluate(sample):
             police_attentiveness=sample[3],
         )
 
+        # Run a single model
         for _ in range(max_steps):
             model.step()
 
@@ -42,51 +65,84 @@ def evaluate(sample):
 
 
 if __name__ == "__main__":
-    model_class = BaseModel
+    # MPI setup
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
 
-    problem = {
-        "num_vars": 6,
-        "names": [
-            # "victim_attentiveness",
-            "n_police",
-            "loot",
-            "fine",
-            "police_attentiveness",
-            "police_vision_radius",
-            "thief_vision_radius",
-            # "risk",
-        ],
-        "bounds": [
-            # [0.1, 1.0],  # victim attentiveness  (float)
-            [1, 20],  # number of police
-            [2, 20],  # loot
-            [0.2, 7],  # fine
-            [0.1, 1.0],  # police attentiveness (float)
-            [1, 20],  # vision radius police
-            [3, 8],  # vision radius thief
-            # [0.1, 1.0],  # risk (float)
-        ],
-    }
+    # Get all the sample points and spread them through the cluster.
+    if rank == 0:
+        X = SALib.sample.sobol.sample(problem, distinct_samples)
 
-    replicates = 16
-    max_steps = 128
-    distinct_samples = 16
+        chunks = np.array_split(X, size)
+    else:
+        chunks = None
 
-    X = SALib.sample.sobol.sample(problem, distinct_samples)
+    # Get the work for each node.
+    local_X = comm.scatter(chunks, root=0)
 
-    # set the outputs
-    model_reporters = {
-        "Successful_Thefts": lambda m: m.get_successful_thefts(),
-        "Thieves_Caught": lambda m: m.get_caught_thieves(),
-    }
+    print(f"Rank {rank}: received {len(local_X)} samples")
 
-    with mp.Pool() as pool:
-        Y = pool.map(evaluate, X)
+    n_workers = int(os.environ.get("SLURM_CPUS_PER_TASK", mp.cpu_count()))
 
-    Si = sobol.analyze(
-        problem,
-        np.array(Y).flatten(),
-        n_processors=16,
-        parallel=True,
-        print_to_console=True,
-    )
+    if rank == 0:
+        print(f"Using {n_workers} local workers per node")
+
+    # Run all the models in a Pool of workers.
+    with ctx.Pool(processes=n_workers) as pool:
+        local_Y = list(pool.imap_unordered(evaluate, local_X))
+        print(f"Rank {rank} finished {len(local_Y)} evaluations")
+
+    all_Y = comm.gather(local_Y, root=0)
+
+    if rank == 0:
+        Y = np.concat(all_Y)
+        print(f"\nCollected {len(Y)} outputs")
+
+        np.savez("all_Y.npz", Y)
+        np.savez("all_X.npz", X)
+
+        Si = sobol.analyze(
+            problem,
+            Y,
+            n_processors=16,
+            parallel=False,
+            print_to_console=True,
+        )
+
+        ST = Si["ST"]
+        ST_conf = Si["ST_conf"]
+        S1 = Si["S1"]
+        S1_conf = Si["S1_conf"]
+        S2 = Si["S2"]
+        S2_conf = Si["S2_conf"]
+
+        with open("sobol_results.txt", "w") as f:
+            f.write("=== MODEL SETTINGS ===\n")
+            f.write(f"replicates = {replicates}\n")
+            f.write(f"max_steps = {max_steps}\n")
+            f.write(f"distinct_samples = {distinct_samples}\n\n")
+
+            f.write("=== PROBLEM DEFINITION ===\n")
+            f.write(str(problem) + "\n\n")
+
+            f.write("=== SOBOL RESULTS ===\n")
+            f.write("ST:\n")
+            f.write(str(ST) + "\n")
+            f.write("ST_conf:\n")
+            f.write(str(ST_conf) + "\n")
+
+            f.write("\nS1:\n")
+            f.write(str(S1) + "\n")
+            f.write("S1_conf:\n")
+            f.write(str(S1_conf) + "\n")
+
+            f.write("\nS2:\n")
+            f.write(str(S2) + "\n")
+            f.write("S2_conf:\n")
+            f.write(str(S2_conf) + "\n")
+
+    comm.Barrier()
+
+    if rank == 0:
+        print("Finished\n")
