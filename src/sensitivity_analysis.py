@@ -21,9 +21,11 @@ csv_filename = "sensitivity_analysis_results.csv"
 
 import multiprocessing as mp
 
-replicates = 8
-max_steps = 400
-distinct_samples = 4096
+ctx = mp.get_context("spawn")
+
+replicates = 1
+max_steps = 50
+distinct_samples = 4
 
 problem = {
     "num_vars": 6,
@@ -70,78 +72,81 @@ def evaluate(sample):
 
     return np.mean(succesful_thieves)
 
+if __name__ == "__main__":
+    # MPI setup
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
 
-# MPI setup
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-size = comm.Get_size()
+    if rank == 0:
+        X = SALib.sample.sobol.sample(problem, distinct_samples)
 
-if rank == 0:
-    X = SALib.sample.sobol.sample(problem, distinct_samples)
+        chunks = np.array_split(X, size)
+    else:
+        chunks = None
 
-    chunks = np.array_split(X, size)
-else:
-    chunks = None
+    local_X = comm.scatter(chunks, root=0)
 
-local_X = comm.scatter(chunks, root=0)
+    print(f"Rank {rank}: received {len(local_X)} samples")
 
-print(f"Rank {rank}: received {len(local_X)} samples")
+    n_workers = int(os.environ.get("SLURM_CPUS_PER_TASK", mp.cpu_count()))
 
-n_workers = int(os.environ.get("SLURM_CPUS_PER_TASK", mp.cpu_count()))
+    if rank == 0:
+        print(f"Using {n_workers} local workers per node")
 
-if rank == 0:
-    print(f"Using {n_workers} local workers per node")
+    with ctx.Pool(processes=n_workers) as pool:
+        local_Y = list(pool.imap_unordered(evaluate, local_X))
+        print(f"Rank {rank} finished {len(local_Y)} evaluations")
 
-with mp.Pool(processes=n_workers) as pool:
-    local_Y = list(pool.imap_unordered(evaluate, local_X))
-    print(f"Rank {rank} finished {len(local_Y)} evaluations")
+    all_Y = comm.gather(local_Y, root=0)
 
-all_Y = comm.gather(local_Y, root=0)
+    if rank == 0:
+        Y = np.concat(all_Y)
+        print(f"\nCollected {len(Y)} outputs")
 
-if rank == 0:
-    Y = np.concat(all_Y)
-    print(f"\nCollected {len(Y)} outputs")
+        np.savez("all_Y.npz", Y)
+        np.savez("all_X.npz", X)
 
-    Si = sobol.analyze(
-        problem,
-        Y,
-        n_processors=16,
-        parallel=True,
-        print_to_console=True,
-    )
+        Si = sobol.analyze(
+            problem,
+            Y,
+            n_processors=16,
+            parallel=False,
+            print_to_console=True,
+        )
 
-    ST = Si["ST"]
-    ST_conf = Si["ST_conf"]
-    S1 = Si["S1"]
-    S1_conf = Si["S1_conf"]
-    S2 = Si["S2"]
-    S2_conf = Si["S2_conf"]
+        ST = Si["ST"]
+        ST_conf = Si["ST_conf"]
+        S1 = Si["S1"]
+        S1_conf = Si["S1_conf"]
+        S2 = Si["S2"]
+        S2_conf = Si["S2_conf"]
 
-    with open("sobol_results.txt", "w") as f:
-        f.write("=== MODEL SETTINGS ===\n")
-        f.write(f"replicates = {replicates}\n")
-        f.write(f"max_steps = {max_steps}\n")
-        f.write(f"distinct_samples = {distinct_samples}\n\n")
+        with open("sobol_results.txt", "w") as f:
+            f.write("=== MODEL SETTINGS ===\n")
+            f.write(f"replicates = {replicates}\n")
+            f.write(f"max_steps = {max_steps}\n")
+            f.write(f"distinct_samples = {distinct_samples}\n\n")
 
-        f.write("=== PROBLEM DEFINITION ===\n")
-        f.write(str(problem) + "\n\n")
+            f.write("=== PROBLEM DEFINITION ===\n")
+            f.write(str(problem) + "\n\n")
 
-        f.write("=== SOBOL RESULTS ===\n")
-        f.write(str(ST) + "\n")
-        f.write("ST_conf:\n")
-        f.write(str(ST_conf) + "\n")
+            f.write("=== SOBOL RESULTS ===\n")
+            f.write(str(ST) + "\n")
+            f.write("ST_conf:\n")
+            f.write(str(ST_conf) + "\n")
 
-        f.write("\nS1:\n")
-        f.write(str(S1) + "\n")
-        f.write("S1_conf:\n")
-        f.write(str(S1_conf) + "\n")
+            f.write("\nS1:\n")
+            f.write(str(S1) + "\n")
+            f.write("S1_conf:\n")
+            f.write(str(S1_conf) + "\n")
 
-        f.write("\nS2:\n")
-        f.write(str(S2) + "\n")
-        f.write("S2_conf:\n")
-        f.write(str(S2_conf) + "\n")
+            f.write("\nS2:\n")
+            f.write(str(S2) + "\n")
+            f.write("S2_conf:\n")
+            f.write(str(S2_conf) + "\n")
 
-comm.Barrier()
+    comm.Barrier()
 
-if rank == 0:
-    print("Finished\n")
+    if rank == 0:
+        print("Finished\n")

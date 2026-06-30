@@ -7,7 +7,7 @@ from mpi4py import MPI
 from tqdm import tqdm
 import multiprocessing as mp
 
-replicates = 32
+replicates = 8
 max_steps = 500
 
 problem = {
@@ -143,7 +143,7 @@ def mesh_grid_generation(x_vals_name, y_vals_name, n_grid):
     plt.savefig(f"heatmaps/{x_vals_name} vs {y_vals_name}.png", bbox_inches="tight")
 
     np.savez(
-        f"raw_data/{x_vals_name} {y_vals_name} {n_grid} {replicates} {max_steps}.npz"
+        f"raw_data/{x_vals_name} {y_vals_name} {n_grid} {replicates} {max_steps}.npz", {"Y_grid": Y_grid}
     )
 
 
