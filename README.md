@@ -74,17 +74,21 @@ To run the sensitivity analysis, use:
 
 ```uv run src/sensitivity_analysis.py```
 
-## Important parameters (TODO: update parameters)
-* Number of targets (n_targets): 1500
+## Important baseline parameters 
+* Grid size (width, height): 50 x 50
 * Number of offenders (n_thieves): 10
-* Number of guardians (n_police): 5
-* Grid size (width, height): 50
-* Guardian vision radius (): 8
-* Offender vision radius (): 3
-* Victim vision radius (): 1
-* Increase attentiveness ($\alpha$): 0.5
-* Increase riskiness ($\beta$): 0.05
-* Decay attentiveness ($\delta$): 0.1
+* Number of targets (n_targets): 1500
+* Number of guardians (n_police): 10
+* Guardian vision radius (police_vision_radius): 8
+* Offender vision radius (thief_vision_radius): 3
+* Increase attentiveness (increase_attentiveness): 0.5
+* Increase riskiness (increase_riskiness): 0.05
+* Decay attentiveness (decay_attentiveness): 0.1
+* Decay riskiness (decay_riskiness): 0.5
+* Guardian attentiveness (police_attentiveness) = 0.8
+* Thief loot after sucessful steal (loot): 5
+* Thief fine after being caught (fine): 2
+
 
 ## Aknowledgements
 * Wolf-sheep model: We have used the notebook from the first assignment to guide us on how to set up a model using the mesa package. Similarly, we have used the server.py file to figure out how to show our simulation.
