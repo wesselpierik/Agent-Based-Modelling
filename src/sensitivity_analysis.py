@@ -72,6 +72,7 @@ def evaluate(sample):
 
     return np.mean(succesful_thieves)
 
+
 if __name__ == "__main__":
     # MPI setup
     comm = MPI.COMM_WORLD

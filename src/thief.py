@@ -38,8 +38,12 @@ class Thief(Person):
         """
         self.move_to_crowd()
 
-        neighbors_in_vision = self.model.grid.get_neighbors(self.pos, moore=True)
-        targets = [obj for obj in neighbors_in_vision if isinstance(obj, Target)]
+        neighbors_in_vision = self.model.grid.get_neighbors(
+            self.pos, moore=True
+        )
+        targets = [
+            obj for obj in neighbors_in_vision if isinstance(obj, Target)
+        ]
         if targets:
             # sort targets based on how attractive they are
             targets.sort(key=lambda v: -v.get_attentiveness() + v.get_wealth())
@@ -71,10 +75,14 @@ class Thief(Person):
                 self.rob(target, target_att)
                 break
 
-            increase_riskiness_factor = 1 + self.model.get_increase_riskiness_factor()
+            increase_riskiness_factor = (
+                1 + self.model.get_increase_riskiness_factor()
+            )
 
             # no attempt made
-            self._riskiness = min(1, self._riskiness * increase_riskiness_factor)
+            self._riskiness = min(
+                1, self._riskiness * increase_riskiness_factor
+            )
 
     def rob(
         self,
@@ -121,7 +129,9 @@ class Thief(Person):
         x, y = self.pos
         self.model.crime_heatmap[x][y] += 1
         cell_contents = self.model.grid.get_cell_list_contents([(x, y)])
-        tile_exists = any(type(agent) is HeatmapTile for agent in cell_contents)
+        tile_exists = any(
+            type(agent) is HeatmapTile for agent in cell_contents
+        )
 
         if not tile_exists:
             new_tile = HeatmapTile(f"tile_{x}_{y}", self.model, (x, y))

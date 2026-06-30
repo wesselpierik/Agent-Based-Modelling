@@ -52,11 +52,14 @@ class Target(Person):
         if (
             self.model.schedule.time - self._robbed_timestamp > 5
             and random.random()
-            < 0.01 * (1 - self._wealth)  # decay probability dependent of wealth
+            < 0.01
+            * (1 - self._wealth)  # decay probability dependent of wealth
         ):
             # targets gets less attentive after not being robbed for some time
             self._attentiveness = max(
-                0, self._attentiveness - self.model.get_decay_attentiveness_factor()
+                0,
+                self._attentiveness
+                - self.model.get_decay_attentiveness_factor(),
             )
 
     def move_to_police(self) -> None:
@@ -80,7 +83,9 @@ class Target(Person):
         """
         attentiveness_increase = self.model.get_increase_attentiveness_factor()
 
-        self._attentiveness = min(1.0, self._attentiveness + attentiveness_increase)
+        self._attentiveness = min(
+            1.0, self._attentiveness + attentiveness_increase
+        )
         self._robbed_timestamp = self.model.schedule.time
         self._recovery_time_remaining = self._recovery_time_threshold
         self._recovered_state = False

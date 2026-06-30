@@ -63,7 +63,9 @@ class HistogramModule(TextElement):
         ax2.set_xlim(0, 1)
         n_thieves = getattr(model, "n_thieves", 50)
         ax2.set_ylim(0, max(20, n_thieves // 2))
-        ax2.set_title("Thief Riskiness Distribution", fontsize=11, fontweight="bold")
+        ax2.set_title(
+            "Thief Riskiness Distribution", fontsize=11, fontweight="bold"
+        )
         ax2.set_xlabel("Riskiness Score")
         ax2.set_ylabel("Number of Thieves")
         ax2.grid(axis="y", alpha=0.2)

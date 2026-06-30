@@ -122,7 +122,9 @@ ax1.bar(x, S1, yerr=S1_conf, capsize=5)
 ax1.set_xticks(x)
 ax1.set_xticklabels(name_labels, rotation=45, ha="right")
 ax1.set_ylabel("First-order Sobol indices")
-ax1.set_title("First-order Sobol indices for different parameters on successful thefts")
+ax1.set_title(
+    "First-order Sobol indices for different parameters on successful thefts"
+)
 
 # ---- ST ----
 ax2 = plt.subplot(2, 1, 2)
@@ -130,10 +132,11 @@ ax2.bar(x, ST, yerr=ST_conf, capsize=5, color="orange")
 ax2.set_xticks(x)
 ax2.set_xticklabels(name_labels, rotation=45, ha="right")
 ax2.set_ylabel("Total-order Sobol indices")
-ax2.set_title("Total-order Sobol indices for different parameters on successful thefts")
+ax2.set_title(
+    "Total-order Sobol indices for different parameters on successful thefts"
+)
 
 
 plt.tight_layout()
 plt.savefig("sensitivity_plots.png")
 plt.show()
-

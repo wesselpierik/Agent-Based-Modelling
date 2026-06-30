@@ -37,7 +37,9 @@ bounds = [
     (1, 20),  # vision radius thief
 ]
 
-param_bounds_dict = {name: bound for name, bound in zip(parameter_names, bounds)}
+param_bounds_dict = {
+    name: bound for name, bound in zip(parameter_names, bounds)
+}
 
 baseline = {
     "n_police": 10,
@@ -125,10 +127,13 @@ def mesh_grid_generation(x_vals_name, y_vals_name, n_grid):
     except FileExistsError:
         pass
 
-    plt.savefig(f"heatmaps/{x_vals_name} vs {y_vals_name}.png", bbox_inches="tight")
+    plt.savefig(
+        f"heatmaps/{x_vals_name} vs {y_vals_name}.png", bbox_inches="tight"
+    )
 
     np.savez(
-        f"raw_data/{x_vals_name} {y_vals_name} {n_grid} {replicates} {max_steps}.npz", {"Y_grid": Y_grid}
+        f"raw_data/{x_vals_name} {y_vals_name} {n_grid} {replicates} {max_steps}.npz",
+        {"Y_grid": Y_grid},
     )
 
 

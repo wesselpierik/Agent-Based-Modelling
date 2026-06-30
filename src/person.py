@@ -12,7 +12,9 @@ class Person(mesa.Agent):
     This class implements movement rules for all agent types
     """
 
-    def __init__(self, unique_id: int, model, pos: tuple[int, int], vision_radius: int):
+    def __init__(
+        self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
+    ):
         """
         Initializes a base Person agent.
 
@@ -112,7 +114,9 @@ class Person(mesa.Agent):
         # Move to crowd
         radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
         contents = self.model.grid.get_cell_list_contents(radius)
-        coords = [agent.pos for agent in contents if type(agent).__name__ == "Target"]
+        coords = [
+            agent.pos for agent in contents if type(agent).__name__ == "Target"
+        ]
         if len(coords) == 0:
             return
         if len(coords) == 1:
@@ -182,7 +186,9 @@ class Person(mesa.Agent):
                 # Get apparent wealth of each neighbour
                 apparent_wealth = []
                 for neighbour in neighbours_surrounding:
-                    contents = self.model.grid.get_cell_list_contents([neighbour])
+                    contents = self.model.grid.get_cell_list_contents(
+                        [neighbour]
+                    )
                     filter_tiles = [
                         agent
                         for agent in contents
@@ -194,7 +200,9 @@ class Person(mesa.Agent):
                             apparent_wealth.append(content.get_wealth())
 
                 if len(apparent_wealth) > 0:
-                    max_apparent_wealth.append((surrounding_cell, max(apparent_wealth)))
+                    max_apparent_wealth.append(
+                        (surrounding_cell, max(apparent_wealth))
+                    )
 
             # Select neighbour with wealthies neighbour
             if len(max_apparent_wealth) > 0:
@@ -206,7 +214,9 @@ class Person(mesa.Agent):
                     if value == max_value:
                         max_indices.append(index)
 
-                selected_neighbour = max_apparent_wealth[random.choice(max_indices)][0]
+                selected_neighbour = max_apparent_wealth[
+                    random.choice(max_indices)
+                ][0]
 
             else:
                 selected_neighbour = random.choice(empty_neighbours)
