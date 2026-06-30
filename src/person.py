@@ -32,7 +32,9 @@ class Person(mesa.Agent):
         self.pos = pos
         self._vision_radius = vision_radius
 
-    def empty_neighbourhood(self, neighbours: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    def empty_neighbourhood(
+        self, neighbours: list[tuple[int, int]]
+    ) -> list[tuple[int, int]]:
         """
         Checks for empty neighbours
 
@@ -60,7 +62,8 @@ class Person(mesa.Agent):
         """
         Implements random movement within a Moore neighbourhood.
         """
-        # Get neighbours (Moore neighbourhood) and randomly select one that is empty
+        # Get neighbours (Moore neighbourhood) and randomly select
+        # one that is empty
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
 
         # Check for empty neighbours
@@ -73,7 +76,8 @@ class Person(mesa.Agent):
                 if not isinstance(agent, heatmap.HeatmapTile)
             ]
 
-            # If there are no physical people in the cell, it's safe to move there!
+            # If there are no physical people in the cell, it's safe
+            # to move there!
             if len(filter_tiles) == 0:
                 empty_neighbours.append(neighbour)
 

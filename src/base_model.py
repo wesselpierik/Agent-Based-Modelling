@@ -91,7 +91,9 @@ class BaseModel(mesa.Model):
         self.datacollector = DataCollector(
             {
                 "Attempts": lambda m: sum(
-                    agent.attempts for agent in m._agents if type(agent) is thief.Thief
+                    agent.attempts
+                    for agent in m._agents
+                    if type(agent) is thief.Thief
                 ),
                 "Succesful": lambda m: (
                     sum(
@@ -146,7 +148,8 @@ class BaseModel(mesa.Model):
                 vision_radius = self._thief_vision_radius
             case _:
                 raise ValueError(
-                    f"Trying to add an unknown class of agent type {agent_type}"
+                    f"Trying to add an unknown class of"
+                    f"agent type {agent_type}"
                 )
 
         # Create new agent
@@ -230,7 +233,9 @@ class BaseModel(mesa.Model):
         )
         local_contents = self.grid.get_cell_list_contents(local_cells)
         local_people = [
-            agent for agent in local_contents if not isinstance(agent, HeatmapTile)
+            agent
+            for agent in local_contents
+            if not isinstance(agent, HeatmapTile)
         ]
         amount_of_people_local = len(local_people)
         local_grid_size = len(local_cells)

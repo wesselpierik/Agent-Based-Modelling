@@ -80,7 +80,8 @@ class Target(Person):
         Event callback executed upon a successful pickpocketing attack.
 
         Increases attentiveness level, saves the time when she was robbed
-        triggers the non-recovered state flag, and initializes the police-seeking routing timer.
+        triggers the non-recovered state flag, and initializes the
+        police-seeking routing timer.
         """
         attentiveness_increase = self.model.get_increase_attentiveness_factor()
 
@@ -101,6 +102,7 @@ class Target(Person):
         # Neighbors get more alert, but less than the actual victim
         witness_shock = 0.15
 
-        # Increase their attentiveness and update their timestamp so they don't instantly decay
+        # Increase their attentiveness and update their timestamp
+        # so they don't instantly decay
         self._attentiveness = min(1.0, self._attentiveness + witness_shock)
         self._robbed_timestamp = self.model.schedule.time

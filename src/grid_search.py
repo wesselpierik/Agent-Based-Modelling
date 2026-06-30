@@ -8,7 +8,8 @@ from tqdm import tqdm
 import multiprocessing as mp
 
 """
-WARNING: THIS FILE WILL ONLY WORK CORRECTLY ON A SLURM CONTROLLED SUPERCOMPUTER.
+WARNING: THIS FILE WILL ONLY WORK CORRECTLY ON A SLURM CONTROLLED
+SUPERCOMPUTER.
 A LAPTOP WILL NOT BE ABLE TO MAKE MULTIPLE MPI NODES AND ALSO MULTIPROCESS FOR
 EACH MPI NODE.
 
@@ -37,7 +38,9 @@ bounds = [
     (1, 20),  # vision radius thief
 ]
 
-param_bounds_dict = {name: bound for name, bound in zip(parameter_names, bounds)}
+param_bounds_dict = {
+    name: bound for name, bound in zip(parameter_names, bounds)
+}
 
 baseline = {
     "n_police": 10,
@@ -86,7 +89,9 @@ def evaluate(args: tuple[tuple[float | int, float | int], str, str]) -> float:
     return np.mean(succesful_thieves)
 
 
-def mesh_grid_generation(x_vals_name: str, y_vals_name: str, n_grid: int) -> None:
+def mesh_grid_generation(
+    x_vals_name: str, y_vals_name: str, n_grid: int
+) -> None:
     """
     Generate the heatmap for a single combination of parameters x_vals_name and
     y_vals_name. The number of sample points for each parameter is equal to
@@ -150,7 +155,9 @@ def mesh_grid_generation(x_vals_name: str, y_vals_name: str, n_grid: int) -> Non
     except FileExistsError:
         pass
 
-    plt.savefig(f"heatmaps/{x_vals_name} vs {y_vals_name}.png", bbox_inches="tight")
+    plt.savefig(
+        f"heatmaps/{x_vals_name} vs {y_vals_name}.png", bbox_inches="tight"
+    )
 
     np.savez(
         f"raw_data/{x_vals_name} {y_vals_name} {n_grid} {replicates} {max_steps}.npz",
