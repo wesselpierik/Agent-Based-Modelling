@@ -52,7 +52,7 @@ File for the visualisation of the simulation. It shows the grid per time step an
 This file runs the sensitivity analysis and writes the results to sobol_results.txt.
 
 #### src/sensitivity_plot.py
-This file processes the output from the sensitivity analysis and creates the sensitivity plot.
+This file processes the output from the sensitivity analysis and creates the sensitivity plot. Requires an OpenMPI installation to run.
 
 ## Usage
 To install the uv environment, 
