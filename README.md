@@ -75,10 +75,10 @@ To run the sensitivity analysis, use:
 ```uv run src/sensitivity_analysis.py```
 
 ## Important parameters (TODO: update parameters)
-* Number of targets (): 1500
-* Number of offenders (): 10
-* Number of guardians (): 5
-* Grid size (): 50
+* Number of targets (n_targets): 1500
+* Number of offenders (n_thieves): 10
+* Number of guardians (n_police): 5
+* Grid size (width, height): 50
 * Guardian vision radius (): 8
 * Offender vision radius (): 3
 * Victim vision radius (): 1
