@@ -87,5 +87,5 @@ To run the sensitivity analysis, use:
 * Decay attentiveness ($\delta$): 0.1
 
 ## Aknowledgements
-* Wolf-sheep model: 
-* Sensitivity analysis: 
+* Wolf-sheep model: We have used the notebook from the first assignment to guide us on how to set up a model using the mesa package. Similarly, we have used the server.py file to figure out how to show our simulation.
+* Sensitivity analysis: We have used the given sensitivity analysis notebook to figure out how to apply the sensistivity analysis in Python.
