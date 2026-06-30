@@ -8,15 +8,35 @@ import heatmap
 
 
 class Person(mesa.Agent):
+    """
+    This class implements movement rules for all agent types
+    """
     def __init__(self, unique_id: int, model, pos: tuple[int, int], vision_radius: int):
+        """
+        Initializes a base Person agent.
+
+        Args:
+            unique_id (int): A unique identifier for the agent instance.
+            model (Model): The mesa model.
+            pos (tuple[int, int]): The current (x, y) coordinates of the agent on the grid.
+            vision_radius (int): The maximum distance for scanning local neighborhoods.
+        """
         super().__init__(unique_id, model)
 
         self.model = model
         self.pos = pos
         self.vision_radius = vision_radius
 
-    def empty_neighbourhood(self, neighbours):
-        # Check for empty neighbours
+    def empty_neighbourhood(self, neighbours) -> list[tuple[int, int]]:
+        """
+        Checks for empty neighbours
+
+        Args:
+            neighbours (list[tuple[int, int]]): A list of coordinate tuples to check.
+
+        Returns:
+            list[tuple[int, int]]: List of unoccupied neighbour coordinates.
+        """
         empty_neighbours = []
         for neighbour in neighbours:
             contents = self.model.grid.get_cell_list_contents([neighbour])
@@ -31,7 +51,10 @@ class Person(mesa.Agent):
 
         return empty_neighbours
 
-    def move(self):
+    def move(self) -> None:
+        """
+        Implements random movement within a Moore neighbourhood.
+        """
         # Get neighbours (Moore neighbourhood) and randomly select one that is empty
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
 
@@ -59,7 +82,10 @@ class Person(mesa.Agent):
         # Move agent
         self.model.grid.move_agent(self, selected_neighbour)
 
-    def biased_move(self):
+    def biased_move(self) -> None:
+        """
+        Do we use this????
+        """
         # Get neighbours (Moore neighbourhood)
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
 
@@ -85,7 +111,7 @@ class Person(mesa.Agent):
             agent_type = self.__class__.__name__
 
             # Biased moevement for thieves
-            # Move to neighbour with most potential victims as neighbours (Moore neighbourhood)
+            # Move to neighbour with most targets as neighbours (Moore neighbourhood)
             if agent_type == "Thief":
                 n_passerby_neighbour = []
                 for neighbour in empty_neighbours:
@@ -102,7 +128,7 @@ class Person(mesa.Agent):
                         )
                         passerby_count = 0
 
-                        # For each neighbour of the neighbour, count the number of potential victims
+                        # For each neighbour of the neighbour, count the number of targets
                         for n in neighbours_of_neighbour:
                             contents = self.model.grid.get_cell_list_contents([n])
                             filter_tiles = [
@@ -112,7 +138,7 @@ class Person(mesa.Agent):
                             ]
 
                             for content in filter_tiles:
-                                if content.__class__.__name__ == "Victim":
+                                if content.__class__.__name__ == "Target":
                                     passerby_count += 1
 
                         n_passerby_neighbour.append((neighbour, passerby_count))
@@ -121,7 +147,7 @@ class Person(mesa.Agent):
                         # Skip neighhbour if it is not empty
                         continue
 
-                # Select neighbour with most potential victims
+                # Select neighbour with most targets
                 if len(n_passerby_neighbour) > 0:
                     values = [x[1] for x in n_passerby_neighbour]
                     max_value = max(values)
@@ -140,8 +166,11 @@ class Person(mesa.Agent):
 
             self.model.grid.move_agent(self, selected_neighbour)
 
-    def move_to_crowd(self):
-        # Biased movement of agents towards the bussiest spot within their range
+    def move_to_crowd(self) -> None:
+        """
+        Implements biased movement of agents towards the bussiest spot
+        within their range
+        """
 
         # Get neighbours (Moore neighbourhood)
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
@@ -166,7 +195,7 @@ class Person(mesa.Agent):
         # Move to crowd
         radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
         contents =  self.model.grid.get_cell_list_contents(radius)
-        coords = [agent.pos for agent in contents if type(agent).__name__ == "Victim"]
+        coords = [agent.pos for agent in contents if type(agent).__name__ == "Target"]
         if len(coords) == 0:
             return
         if len(coords) == 1:
@@ -177,6 +206,10 @@ class Person(mesa.Agent):
         self.model.grid.move_agent(self, new_pos)
 
     def move_to_type(self, agent_type: type) -> None:
+        """
+        Implements movement rule where an agent tries to move toward an 
+        agent of a specified type within his vision radius
+        """
         type_location = [
             agent.pos
             for agent in self.model.agents
@@ -209,11 +242,10 @@ class Person(mesa.Agent):
 
         self.model.grid.move_agent(self, closest_neighbor)
 
-    def apparent_wealth(self):
-        return None
-
-    def move_to_wealth(self):
-        # Agents move towards victims with higher apparent wealth
+    def move_to_wealth(self) -> None:
+        """
+        Agents move towards targets with higher apparent wealth
+        """
         # Get neighbours (Moore neighbourhood)
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
         empty_neighbours = self.empty_neighbourhood(neighbours)
@@ -241,7 +273,7 @@ class Person(mesa.Agent):
                     ]
 
                     for content in filter_tiles:
-                        if content.__class__.__name__ == "Victim":
+                        if content.__class__.__name__ == "Target":
                             apparent_wealth.append(content.get_wealth())
 
                 if len(apparent_wealth) > 0:
@@ -268,7 +300,10 @@ class Person(mesa.Agent):
         # Biased movement of thieves when there is perceived police presence in the model
         pass
 
-    def police_patrol_move(self):
+    def police_patrol_move(self) -> None:
+        """
+        Implements patrol movement (up and down) used for police
+        """
         # Police have a patrol route, with a fixed pattern
         # Get neighbours (Moore neighbourhood)
         neighbours = self.model.grid.get_neighborhood(self.pos, True)
@@ -312,16 +347,7 @@ class Person(mesa.Agent):
                     self.model.grid.move_agent(self, (x, y - 1))
                     return
 
-    def get_wealth(self):
-        raise NotImplementedError
-
-    def get_attentiveness(self):
-        raise NotImplementedError
-
-    def was_robbed(self):
-        raise NotImplementedError
-
-    def get_vision_radius(self):
+    def get_vision_radius(self) -> int:
         return self.vision_radius
 
     def get_local_business(self) -> float:

@@ -14,7 +14,7 @@ from base_model import BaseModel
 from heatmap import HeatmapTile
 from police import Police
 from thief import Thief
-from victim import Victim
+from target import Target
 from histogram import HistogramModule
 
 import matplotlib as mpl
@@ -51,7 +51,7 @@ def agent_portrayal(agent):
             "Color": (
                 "red"
                 if type(agent) is Thief
-                else "green" if type(agent) is Victim else "blue"
+                else  "#6ab956" if type(agent) is Target else "blue"
             ),
             "Filled": "true",
             "Layer": 1,
@@ -80,14 +80,21 @@ chart2 = ChartModule(
     ],
     data_collector_name="datacollector",
 )
+chart3 = ChartModule(
+    [
+        {"Label": "Avg Attentiveness", "Color": "brown"}
+    ],
+    data_collector_name="datacollector",
+)
+
 
 attentiveness_dist = HistogramModule()
 
 # Create the server, and pass the grid and the graph
 server = ModularServer(
-    BaseModel, [grid, chart, chart2, attentiveness_dist], "BaseModel", {"height": 100, "width": 100}
+    BaseModel, [grid, chart, chart2, chart3, attentiveness_dist], "BaseModel", {"height": 100, "width": 100}
 )
 
-server.port = 9042
+server.port = 9003
 
 server.launch()
