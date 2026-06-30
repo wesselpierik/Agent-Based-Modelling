@@ -1,24 +1,10 @@
-from IPython.display import clear_output
 import SALib
-from mesa.batchrunner import BatchRunner
 import numpy as np
 from SALib.sample import sobol
 from base_model import BaseModel
-from mesa.batchrunner import FixedBatchRunner
-from SALib.analyze import sobol
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from itertools import combinations
 import os
-
 from mpi4py import MPI
-
-
 from tqdm import tqdm
-
-csv_filename = "sensitivity_analysis_results.csv"
-
 import multiprocessing as mp
 
 ctx = mp.get_context("spawn")
@@ -52,9 +38,13 @@ problem = {
 }
 
 
-def evaluate(sample):
+def evaluate(sample: tuple[float, float, float, float, float, float]) -> float:
     succesful_thieves = np.empty(replicates, dtype=np.int64)
+
+    # Create a pretty progress bar
     tk0 = tqdm(range(replicates), total=int(replicates), disable=False)
+
+    # Run the model multiple times
     for i in tk0:
         model = BaseModel(
             n_police=int(sample[0]),
@@ -65,6 +55,7 @@ def evaluate(sample):
             police_attentiveness=sample[3],
         )
 
+        # Run a single model
         for _ in range(max_steps):
             model.step()
 
@@ -79,6 +70,7 @@ if __name__ == "__main__":
     rank = comm.Get_rank()
     size = comm.Get_size()
 
+    # Get all the sample points and spread them through the cluster.
     if rank == 0:
         X = SALib.sample.sobol.sample(problem, distinct_samples)
 
@@ -86,6 +78,7 @@ if __name__ == "__main__":
     else:
         chunks = None
 
+    # Get the work for each node.
     local_X = comm.scatter(chunks, root=0)
 
     print(f"Rank {rank}: received {len(local_X)} samples")
@@ -95,6 +88,7 @@ if __name__ == "__main__":
     if rank == 0:
         print(f"Using {n_workers} local workers per node")
 
+    # Run all the models in a Pool of workers.
     with ctx.Pool(processes=n_workers) as pool:
         local_Y = list(pool.imap_unordered(evaluate, local_X))
         print(f"Rank {rank} finished {len(local_Y)} evaluations")
@@ -133,6 +127,7 @@ if __name__ == "__main__":
             f.write(str(problem) + "\n\n")
 
             f.write("=== SOBOL RESULTS ===\n")
+            f.write("ST:\n")
             f.write(str(ST) + "\n")
             f.write("ST_conf:\n")
             f.write(str(ST_conf) + "\n")

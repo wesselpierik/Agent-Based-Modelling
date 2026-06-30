@@ -37,9 +37,7 @@ bounds = [
     (1, 20),  # vision radius thief
 ]
 
-param_bounds_dict = {
-    name: bound for name, bound in zip(parameter_names, bounds)
-}
+param_bounds_dict = {name: bound for name, bound in zip(parameter_names, bounds)}
 
 baseline = {
     "n_police": 10,
@@ -51,7 +49,19 @@ baseline = {
 }
 
 
-def evaluate(args):
+def evaluate(args: tuple[tuple[float | int, float | int], str, str]) -> float:
+    """
+    Evaluate a single combination of parameters replicates number of times.
+    The combination of parameters should be given to args as a tuple of
+    ((x_value, y_value), x_parameter_name, y_parameter_name).
+
+    Args:
+        args: A tuple containing a tuple of parameter settings and the
+              corresponing variable names.
+
+    Returns:
+        The mean number of successful thefts
+    """
     succesful_thieves = np.empty(replicates, dtype=np.int64)
 
     sample, x_name, y_name = args
@@ -76,7 +86,17 @@ def evaluate(args):
     return np.mean(succesful_thieves)
 
 
-def mesh_grid_generation(x_vals_name, y_vals_name, n_grid):
+def mesh_grid_generation(x_vals_name: str, y_vals_name: str, n_grid: int) -> None:
+    """
+    Generate the heatmap for a single combination of parameters x_vals_name and
+    y_vals_name. The number of sample points for each parameter is equal to
+    n_grid.
+
+    Args:
+        x_vals_name: The name of the parameter that is plotted on the x-axis.
+        y_vals_name: The name of the parameter that is plotted on the y-axis.
+        n_grid: The number of subdivisions in the range of both parameters.
+    """
     x_bounds = param_bounds_dict[x_vals_name]
     y_bounds = param_bounds_dict[y_vals_name]
 
@@ -89,8 +109,10 @@ def mesh_grid_generation(x_vals_name, y_vals_name, n_grid):
 
     n_workers = int(os.environ.get("SLURM_CPUS_PER_TASK", mp.cpu_count()))
 
+    # Create all the required sample points.
     tasks = [(sample, x_vals_name, y_vals_name) for sample in X]
 
+    # Run all required models
     with mp.Pool(processes=n_workers) as pool:
         chunksize = max(1, len(tasks) // n_workers)
         results_iter = pool.imap(evaluate, tasks, chunksize=chunksize)
@@ -105,6 +127,7 @@ def mesh_grid_generation(x_vals_name, y_vals_name, n_grid):
         ):
             Y.append(y)
 
+    # Process the results into a heatmap
     Y_grid = np.asarray(Y).reshape(n_grid, n_grid)
 
     plt.figure(figsize=(7, 6))
@@ -127,9 +150,7 @@ def mesh_grid_generation(x_vals_name, y_vals_name, n_grid):
     except FileExistsError:
         pass
 
-    plt.savefig(
-        f"heatmaps/{x_vals_name} vs {y_vals_name}.png", bbox_inches="tight"
-    )
+    plt.savefig(f"heatmaps/{x_vals_name} vs {y_vals_name}.png", bbox_inches="tight")
 
     np.savez(
         f"raw_data/{x_vals_name} {y_vals_name} {n_grid} {replicates} {max_steps}.npz",
@@ -143,16 +164,21 @@ if __name__ == "__main__":
     rank = comm.Get_rank()
     size = comm.Get_size()
 
+    # Get all the pair combination of parameters
     pairs = list(combinations(parameter_names, 2))
 
+    # Filter the pairs for each MPI node
     local_pairs = [pair for i, pair in enumerate(pairs) if i % size == rank]
 
     n_grid = 20  # resolution of sweep
 
+    # Sweep the model
     for x_name, y_name in local_pairs:
         mesh_grid_generation(x_name, y_name, n_grid)
 
+    # Wait for all models to finish
     comm.Barrier()
 
+    # Final message
     if rank == 0:
         print("Finished\n")

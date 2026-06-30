@@ -1,26 +1,21 @@
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule
-from mesa.visualization.modules import TextElement
 
 # Import the implemented classes
-import IPython
 import os
 import sys
-
-orig_stdout = sys.stdout
-sys.stdout = open(os.devnull, "w")
 from base_model import BaseModel
 from heatmap import HeatmapTile
-from police import Police
 from thief import Thief
 from target import Target
 from histogram import HistogramModule
 
 import matplotlib as mpl
-import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 
+orig_stdout = sys.stdout
+sys.stdout = open(os.devnull, "w")
 sys.stdout = orig_stdout
 
 

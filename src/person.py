@@ -14,15 +14,17 @@ class Person(mesa.Agent):
 
     def __init__(
         self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
-    ):
+    ) -> None:
         """
         Initializes a base Person agent.
 
         Args:
-            unique_id (int): A unique identifier for the agent instance.
-            model (Model): The mesa model.
-            pos (tuple[int, int]): The current (x, y) coordinates of the agent on the grid.
-            vision_radius (int): The maximum distance for scanning local neighborhoods.
+            unique_id:     A unique identifier for the agent instance.
+            model:         The mesa model.
+            pos:           The current (x, y) coordinates of the agent
+                           on the grid.
+            vision_radius: The maximum distance for scanning local
+                           neighborhoods.
         """
         super().__init__(unique_id, model)
 
@@ -30,15 +32,15 @@ class Person(mesa.Agent):
         self.pos = pos
         self._vision_radius = vision_radius
 
-    def empty_neighbourhood(self, neighbours) -> list[tuple[int, int]]:
+    def empty_neighbourhood(self, neighbours: list[tuple[int, int]]) -> list[tuple[int, int]]:
         """
         Checks for empty neighbours
 
         Args:
-            neighbours (list[tuple[int, int]]): A list of coordinate tuples to check.
+            neighbours: A list of coordinate tuples to check.
 
         Returns:
-            list[tuple[int, int]]: List of unoccupied neighbour coordinates.
+            A list of unoccupied neighbour coordinates.
         """
         empty_neighbours = []
         for neighbour in neighbours:

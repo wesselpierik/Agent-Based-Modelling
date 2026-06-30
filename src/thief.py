@@ -14,10 +14,10 @@ class Thief(Person):
         Initializes a Thief agent
 
         Args:
-            unique_id (int): A unique identifier for the agent.
-            model (Model): The  Mesa simulation model.
-            pos (tuple[int, int]): Initial (x, y) coordinates on the grid.
-            vision_radius (int): Maximum grid distance the thief can see police.
+            unique_id:     A unique identifier for the agent.
+            model:         The  Mesa simulation model.
+            pos:           Initial (x, y) coordinates on the grid.
+            vision_radius: Maximum grid distance the thief can see police.
         """
         super().__init__(unique_id, model, pos, vision_radius)
         self._riskiness = np.random.uniform()
@@ -31,9 +31,11 @@ class Thief(Person):
         """
         Executes the Thief's behavior turn during a model step.
           1. Move toward most crowded zone.
-          2. Evaluate surrounding targets sorted by high wealth and low attentiveness.
+          2. Evaluate surrounding targets sorted by high wealth
+             and low attentiveness.
           3. Scan the vision radius for police presence.
-          4. Calculate game-theoretic utility for a theft attempt; execute if utility > 0.
+          4. Calculate game-theoretic utility for a theft attempt;
+             execute if utility > 0.
           5. Dynamically increase riskiness if no attempt is made.
         """
         self.move_to_crowd()
@@ -88,16 +90,18 @@ class Thief(Person):
         self,
         other: Person,
         target_attentiveness: float,
-    ):
+    ) -> None:
         """
         Executes a robbery attempt against a chosen target.
-        The success probability dependent on both target and police attentiveness.
+        The success probability dependent on both target and
+        police attentiveness.
         Failing a robbery decreases thief riskiness. Successfully executing
-        a robbery alerts the target, increases thief confidence, and logs a heatmap point.
+        a robbery alerts the target, increases thief confidence,
+        and logs a heatmap point.
 
         Args:
-            other (Person): The Target agent that is being robbed.
-            target_attentiveness (float): The target's current awareness score.
+            other:                The Target agent that is being robbed.
+            target_attentiveness: The target's current awareness score.
         """
         police_vision = self.model.get_police_vision_radius()
         neighbors = self.model.grid.get_neighbors(

@@ -16,13 +16,14 @@ class Target(Person):
         self, unique_id: int, model, pos: tuple[int, int], vision_radius: int
     ) -> None:
         """
-        Initializes a Target agent with randomized wealth and awareness baselines.
+        Initializes a Target agent with randomized wealth and
+        awareness baselines.
 
         Args:
-            unique_id (int): A unique identifier for the agent instance.
-            model (Model): The simulation model.
-            pos (tuple[int, int]): Initial (x, y) coordinates on the grid map.
-            vision_radius (int): Vision threshold.
+            unique_id:     A unique identifier for the agent instance.
+            model:         The simulation model.
+            pos:           Initial (x, y) coordinates on the grid map.
+            vision_radius: Vision threshold.
         """
         super().__init__(unique_id, model, pos, vision_radius)
         self._wealth = np.random.uniform()
