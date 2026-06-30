@@ -18,9 +18,9 @@ class BaseModel(mesa.Model):
         police_vision_radius=8,
         thief_vision_radius=3,
         police_attentiveness=1,
-        risk=1,
         n_police=5,
         decay_attentiveness=0.1,
+        decay_riskiness=0.5,
         increase_attentiveness=0.5,
         increase_riskiness=0.05,
         loot=5,
@@ -36,7 +36,6 @@ class BaseModel(mesa.Model):
             police_vision_radius (int): radius of cells police can see
             thief_vision_radius (int): radius of cells a thief can see
             police_attentiveness (float): attentiveness of police agents
-            risk (float): global environmental risk multiplier
             n_police (int): amount of police agents
         """
         super().__init__()
@@ -44,15 +43,22 @@ class BaseModel(mesa.Model):
         self.height = height
         self.width = width
         self.n_thieves = 5
-        self.n_victims = 1500
+        self.n_targets = 1500
         self.n_police = n_police
 
-        self.police_vision_radius = police_vision_radius
-        self.thief_vision_radius = thief_vision_radius
-        self.target_vision_radius = 1
+        self._police_vision_radius = police_vision_radius
+        self._thief_vision_radius = thief_vision_radius
+        self._target_vision_radius = 1
 
-        self.loot = loot
-        self.fine = fine
+        self._loot = loot
+        self._fine = fine
+
+        self._police_attentiveness = police_attentiveness
+
+        self._decay_attentiveness = decay_attentiveness
+        self._decay_riskiness = decay_riskiness
+        self._increase_attentiveness = increase_attentiveness
+        self._increase_riskiness = increase_riskiness
 
         self.schedule_Police = RandomActivation(self)
         self.schedule_Target = RandomActivation(self)
@@ -66,40 +72,36 @@ class BaseModel(mesa.Model):
         self.datacollector = DataCollector(
             {
                 "Attempts": lambda m: sum(
-                    agent.attempts
-                    for agent in m.agents
-                    if isinstance(agent, thief.Thief)
+                    agent.attempts for agent in m._agents if type(agent) is thief.Thief
                 ),
                 "Succesful": lambda m: (
                     sum(
                         agent.succesful_steals
-                        for agent in m.agents
-                        if isinstance(agent, thief.Thief)
+                        for agent in m._agents
+                        if type(agent) is thief.Thief
                     )
                 ),
                 "Avg Attentiveness": lambda m: sum(
-                    agent.attentiveness
-                    for agent in m.agents
-                    if isinstance(agent, target.Target)
+                    agent.get_attentiveness()
+                    for agent in m._agents
+                    if type(agent) is target.Target
                 )
                 / self.n_targets,
                 "Avg Riskiness": lambda m: sum(
-                    agent.riskiness
-                    for agent in m.agents
-                    if isinstance(agent, thief.Thief)
+                    agent.get_riskiness()
+                    for agent in m._agents
+                    if type(agent) is thief.Thief
                 )
                 / self.n_thieves,
             }
         )
 
-        self.n_agents = 0
-        self.agents = []
+        self._n_agents = 0
+        self._agents = []
         self.crime_heatmap = np.zeros((width, height))
 
         # Create initial population of agents
-        self.init_population_police_patrol(
-            self.n_police
-        )  # Change to self.init_population_police_patrol(self.n_police) for patrol movement
+        self.init_population_police_patrol(self.n_police)
         self.init_population(thief.Thief, self.n_thieves)
         self.init_population(target.Target, self.n_targets)
 
@@ -113,32 +115,32 @@ class BaseModel(mesa.Model):
         Args:
             agent_type (type): Class of agent (Police, Thief, Target).
             pos (tuple[int, int]): Coordinate pair (x, y) target placement.
-        
+
         Raises ValueError if an unexpected class object is passed.
         """
         match agent_type:
             case police.Police:
-                vision_radius = self.police_vision_radius
+                vision_radius = self._police_vision_radius
             case target.Target:
-                vision_radius = self.target_vision_radius
+                vision_radius = self._target_vision_radius
             case thief.Thief:
-                vision_radius = self.thief_vision_radius
+                vision_radius = self._thief_vision_radius
             case _:
                 raise ValueError(
                     f"Trying to add an unknown class of agent type {agent_type}"
                 )
 
         # Create new agent
-        new_agent = agent_type(self.n_agents, self, pos, vision_radius)
+        new_agent = agent_type(self._n_agents, self, pos, vision_radius)
 
         # Place the agent in the grid
         self.grid.place_agent(new_agent, pos)
 
         # Add the agent to the model
-        self.agents.append(new_agent)
+        self._agents.append(new_agent)
 
         # Update the household value
-        self.n_agents = len(self.agents)
+        self._n_agents = len(self._agents)
 
         self.schedule.add(new_agent)
         getattr(self, f"schedule_{agent_type.__name__}").add(new_agent)
@@ -148,12 +150,12 @@ class BaseModel(mesa.Model):
         Removes agent from the grid, model and schedule
         """
         self.grid.remove_agent(agent)
-        self.agents.remove(agent)
+        self._agents.remove(agent)
         self.schedule.remove(agent)
         getattr(self, f"schedule_{type(agent).__name__}").remove(agent)
 
         # Update household values
-        self.n_agents = len(self.agents)
+        self._n_agents = len(self._agents)
 
     def init_population(self, agent_type, n: int) -> None:
         """
@@ -172,10 +174,9 @@ class BaseModel(mesa.Model):
                 self.add_agent(agent_type, (i, j))
                 agents_spawned += 1  # Only count successful spawns!
 
-
     def init_population_police_patrol(self, n: int):
         """
-        Adds the desired amount of police to the grid with a certain 
+        Adds the desired amount of police to the grid with a certain
         amount of horizontal space between them
 
         Args:
@@ -189,12 +190,12 @@ class BaseModel(mesa.Model):
                 target_j = random.randint(0, self.grid.height - 1)
                 if (target_i, target_j) in self.grid.empties:
                     self.add_agent(police.Police, (target_i, target_j))
-                    spawned = True 
+                    spawned = True
 
     def get_local_business(self, pos: tuple[int, int]) -> float:
         """
-        Calculates the local crowd density (business) within a Moore 
-        neighborhood of radius 10.
+        Calculates the local crowd density (business) within a Moore
+        neighborhood of radius 10. Not used in the code anymore.
 
         Args:
             pos (tuple[int, int]): cell location of the checking agent.
@@ -214,7 +215,7 @@ class BaseModel(mesa.Model):
         return amount_of_people_local / local_grid_size
 
     def get_police_attentiveness(self) -> float:
-        return self.police_attentiveness
+        return self._police_attentiveness
 
     def get_successful_thefts(self) -> int:
         return self.datacollector.get_model_vars_dataframe()["Succesful"]
@@ -226,10 +227,37 @@ class BaseModel(mesa.Model):
         )
 
     def get_loot(self):
-        return self.loot
+        return self._loot
 
     def get_fine(self):
-        return self.fine
+        return self._fine
+
+    def get_police_vision_radius(self) -> int:
+        return self._police_vision_radius
+
+    def get_thief_vision_radius(self) -> int:
+        return self._thief_vision_radius
+
+    def get_target_vision_radius(self) -> int:
+        return self._target_vision_radius
+
+    def get_decay_attentiveness_factor(self):
+        return self._decay_attentiveness
+
+    def get_decay_riskiness_factor(self):
+        return self._decay_riskiness
+
+    def get_increase_attentiveness_factor(self):
+        return self._increase_attentiveness
+
+    def get_increase_riskiness_factor(self):
+        return self._increase_riskiness
+    
+    def get_agents(self):
+        return self._agents
+    
+    def get_n_agents(self):
+        return self._n_agents
 
     def step(self):
         """
@@ -242,13 +270,6 @@ class BaseModel(mesa.Model):
         self.schedule.steps += 1
         self.schedule.time += 1
         self.datacollector.collect(self)
-
-    def run_model(self, step_count=200) -> None:
-        """
-        I believe we use this never
-        """
-        for i in range(step_count):
-            self.step()
 
 
 if __name__ == "__main__":

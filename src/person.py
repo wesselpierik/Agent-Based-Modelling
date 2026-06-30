@@ -11,6 +11,7 @@ class Person(mesa.Agent):
     """
     This class implements movement rules for all agent types
     """
+
     def __init__(self, unique_id: int, model, pos: tuple[int, int], vision_radius: int):
         """
         Initializes a base Person agent.
@@ -25,7 +26,7 @@ class Person(mesa.Agent):
 
         self.model = model
         self.pos = pos
-        self.vision_radius = vision_radius
+        self._vision_radius = vision_radius
 
     def empty_neighbourhood(self, neighbours) -> list[tuple[int, int]]:
         """
@@ -82,90 +83,6 @@ class Person(mesa.Agent):
         # Move agent
         self.model.grid.move_agent(self, selected_neighbour)
 
-    def biased_move(self) -> None:
-        """
-        Do we use this????
-        """
-        # Get neighbours (Moore neighbourhood)
-        neighbours = self.model.grid.get_neighborhood(self.pos, True)
-
-        # Check for empty neighbours
-        empty_neighbours = []
-        for neighbour in neighbours:
-            contents = self.model.grid.get_cell_list_contents([neighbour])
-
-            filter_tiles = [
-                agent
-                for agent in contents
-                if not isinstance(agent, heatmap.HeatmapTile)
-            ]
-            if len(filter_tiles) == 0:
-                empty_neighbours.append(neighbour)
-
-        if len(empty_neighbours) == 0:
-            # No movement if there are no empty neighbours
-            return
-
-        else:
-            # Type of agent
-            agent_type = self.__class__.__name__
-
-            # Biased moevement for thieves
-            # Move to neighbour with most targets as neighbours (Moore neighbourhood)
-            if agent_type == "Thief":
-                n_passerby_neighbour = []
-                for neighbour in empty_neighbours:
-                    contents = self.model.grid.get_cell_list_contents([neighbour])
-
-                    filter_tiles = [
-                        agent
-                        for agent in contents
-                        if not isinstance(agent, heatmap.HeatmapTile)
-                    ]
-                    if len(filter_tiles) == 0:
-                        neighbours_of_neighbour = self.model.grid.get_neighborhood(
-                            neighbour, True
-                        )
-                        passerby_count = 0
-
-                        # For each neighbour of the neighbour, count the number of targets
-                        for n in neighbours_of_neighbour:
-                            contents = self.model.grid.get_cell_list_contents([n])
-                            filter_tiles = [
-                                agent
-                                for agent in contents
-                                if not isinstance(agent, heatmap.HeatmapTile)
-                            ]
-
-                            for content in filter_tiles:
-                                if content.__class__.__name__ == "Target":
-                                    passerby_count += 1
-
-                        n_passerby_neighbour.append((neighbour, passerby_count))
-
-                    else:
-                        # Skip neighhbour if it is not empty
-                        continue
-
-                # Select neighbour with most targets
-                if len(n_passerby_neighbour) > 0:
-                    values = [x[1] for x in n_passerby_neighbour]
-                    max_value = max(values)
-
-                    max_indices = []
-                    for index, value in enumerate(values):
-                        if value == max_value:
-                            max_indices.append(index)
-
-                    selected_neighbour = n_passerby_neighbour[
-                        random.choice(max_indices)
-                    ][0]
-
-            else:
-                selected_neighbour = random.choice(empty_neighbours)
-
-            self.model.grid.move_agent(self, selected_neighbour)
-
     def move_to_crowd(self) -> None:
         """
         Implements biased movement of agents towards the bussiest spot
@@ -194,7 +111,7 @@ class Person(mesa.Agent):
 
         # Move to crowd
         radius = self.model.grid.get_neighborhood(self.pos, True, radius=8)
-        contents =  self.model.grid.get_cell_list_contents(radius)
+        contents = self.model.grid.get_cell_list_contents(radius)
         coords = [agent.pos for agent in contents if type(agent).__name__ == "Target"]
         if len(coords) == 0:
             return
@@ -207,14 +124,14 @@ class Person(mesa.Agent):
 
     def move_to_type(self, agent_type: type) -> None:
         """
-        Implements movement rule where an agent tries to move toward an 
+        Implements movement rule where an agent tries to move toward an
         agent of a specified type within his vision radius
         """
         type_location = [
             agent.pos
-            for agent in self.model.agents
+            for agent in self.model.get_agents()
             if type(agent) is agent_type
-            and math.dist(self.pos, agent.pos) <= self.vision_radius
+            and math.dist(self.pos, agent.pos) <= self._vision_radius
         ]
 
         # There are no agents of agent_type in
@@ -296,59 +213,8 @@ class Person(mesa.Agent):
 
             self.model.grid.move_agent(self, selected_neighbour)
 
-    def perceived_police(self):
-        # Biased movement of thieves when there is perceived police presence in the model
-        pass
-
-    def police_patrol_move(self) -> None:
-        """
-        Implements patrol movement (up and down) used for police
-        """
-        # Police have a patrol route, with a fixed pattern
-        # Get neighbours (Moore neighbourhood)
-        neighbours = self.model.grid.get_neighborhood(self.pos, True)
-
-        grid_height = self.model.grid.height
-
-        x, y = map(int, self.pos)
-
-        # Movement up
-        if self.direction == 1: 
-            # Flip direction if at top of grid
-            if y + 1 >= grid_height:
-                self.direction = -1
-                return
-
-            # Check if the cell above is empty
-            if (x, y + 1) in neighbours:
-                contents = self.model.grid.get_cell_list_contents([(x, y + 1)])
-                filter_tiles = [
-                    agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
-                ]
-                # Move if cell is empty
-                if len(filter_tiles) == 0:
-                    self.model.grid.move_agent(self, (x, y + 1))
-                    return
-
-        elif self.direction == -1:
-            # Flip direction if at bottom of grid
-            if y - 1 < 0:
-                self.direction = 1
-                return
-
-            # Check if the cell below is empty
-            if (x, y - 1) in neighbours:
-                contents = self.model.grid.get_cell_list_contents([(x, y - 1)])
-                filter_tiles = [
-                    agent for agent in contents if not isinstance(agent, heatmap.HeatmapTile)
-                ]
-                # Move if cell is empty
-                if len(filter_tiles) == 0:
-                    self.model.grid.move_agent(self, (x, y - 1))
-                    return
-
     def get_vision_radius(self) -> int:
-        return self.vision_radius
+        return self._vision_radius
 
     def get_local_business(self) -> float:
         return self.model.get_local_business(self.pos)

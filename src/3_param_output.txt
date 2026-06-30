@@ -1,0 +1,18 @@
+replicates = 16 max_steps = 400 distinct_samples = 64
+                            ST   ST_conf
+n_police              0.312756  0.184068
+loot                  0.305472  0.154751
+fine                  0.265250  0.141683
+police_attentiveness  0.328884  0.196555
+                            S1   S1_conf
+n_police              0.023167  0.185718
+loot                  0.009994  0.149629
+fine                  0.044786  0.149261
+police_attentiveness -0.013502  0.171273
+                                        S2   S2_conf
+(n_police, loot)                  0.167421  0.249699
+(n_police, fine)                  0.059338  0.207206
+(n_police, police_attentiveness)  0.104169  0.297423
+(loot, fine)                     -0.053139  0.219749
+(loot, police_attentiveness)     -0.041832  0.261199
+(fine, police_attentiveness)     -0.014822  0.272206

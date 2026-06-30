@@ -1,0 +1,30 @@
+                            ST   ST_conf
+n_police              0.062193  0.041932
+loot                  0.047739  0.022318
+fine                  0.072204  0.036250
+police_attentiveness  0.057603  0.025949
+police_vision_radius  0.108286  0.061020
+thief_vision_radius   0.109174  0.048337
+                            S1   S1_conf
+n_police             -0.097416  0.100166
+loot                 -0.153967  0.061031
+fine                 -0.061626  0.106760
+police_attentiveness -0.123476  0.077438
+police_vision_radius -0.112164  0.098673
+thief_vision_radius  -0.106072  0.113435
+                                                    S2   S2_conf
+(n_police, loot)                              0.228105  0.183274
+(n_police, fine)                              0.165128  0.194299
+(n_police, police_attentiveness)              0.225320  0.189150
+(n_police, police_vision_radius)              0.184234  0.177884
+(n_police, thief_vision_radius)               0.147096  0.190278
+(loot, fine)                                  0.186838  0.192210
+(loot, police_attentiveness)                  0.227395  0.173383
+(loot, police_vision_radius)                  0.218180  0.166040
+(loot, thief_vision_radius)                   0.171416  0.174831
+(fine, police_attentiveness)                  0.116912  0.227898
+(fine, police_vision_radius)                  0.096486  0.223883
+(fine, thief_vision_radius)                   0.080968  0.225406
+(police_attentiveness, police_vision_radius)  0.233487  0.128189
+(police_attentiveness, thief_vision_radius)   0.217310  0.140686
+(police_vision_radius, thief_vision_radius)   0.120102  0.154663

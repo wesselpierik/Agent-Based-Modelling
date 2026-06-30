@@ -10,7 +10,7 @@ class HeatmapTile(mesa.Agent):
     def step(self):
         x, y = self.pos
 
-        # Decrease the crime count by a fraction every timestep 
+        # Decrease the crime count by a fraction every timestep
         if self.model.crime_heatmap[x][y] > 0:
             self.model.crime_heatmap[x][y] = max(
                 0, self.model.crime_heatmap[x][y] - 0.01

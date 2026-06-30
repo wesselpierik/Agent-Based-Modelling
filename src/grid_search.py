@@ -7,32 +7,17 @@ from mpi4py import MPI
 from tqdm import tqdm
 import multiprocessing as mp
 
+"""
+WARNING: THIS FILE WILL ONLY WORK CORRECTLY ON A SLURM CONTROLLED SUPERCOMPUTER.
+A LAPTOP WILL NOT BE ABLE TO MAKE MULTIPLE MPI NODES AND ALSO MULTIPROCESS FOR
+EACH MPI NODE.
+
+ON LINUX THIS WILL RESULT IN A FORK CRASH. SINCE THE WORKLOAD IS HIGH, THE
+ATTEMPT IS NOT RECOMMENDED ANYWAY.
+"""
+
 replicates = 8
 max_steps = 500
-
-problem = {
-    "num_vars": 6,
-    "names": [
-        # "victim_attentiveness",
-        "n_police",
-        "loot",
-        "fine",
-        "police_attentiveness",
-        "police_vision_radius",
-        "thief_vision_radius",
-        # "risk",
-    ],
-    "bounds": [
-        # [0.1, 1.0],  # victim attentiveness  (float)
-        [1, 32],  # number of police
-        [2, 20],  # loot
-        [0.2, 7],  # fine
-        [0.1, 1.0],  # police attentiveness (float)
-        [1, 20],  # vision radius police
-        [1, 20],  # vision radius thief
-        # [0.1, 1.0],  # risk (float)
-    ],
-}
 
 parameter_names = [
     "n_police",
