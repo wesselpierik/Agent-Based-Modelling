@@ -4,14 +4,14 @@
 * Finn Dokter (13680706)
 * Anna van Dun (14535734)
 * Luca van der Nooij (14026554)
-* Wessel Pierik
+* Wessel Pierik (14445662)
 
 
 ## Project motivation
 In the field of criminology, agent-based models are a relatively new method of simulating crimes. Pickpocketing, the act of stealing another person's belongings in a public space, is a widespread problem, especially in highly touristic spaces. A pickpocket might decide to steal from someone depending on their observations, for example, whether there is a police officer nearby or the perceived wealth of the pickpocket's target. The main goal of this research is to look at the influence of such parameters on the success and frequency of pickpocketing events.
 
 ## Short project summary
-The model contains three agents: pickpockets, potential victims and police officers. The environment is a discretised lattice. Each lattice cell can contain one ageny, and a thief agent can attempt a pickpocketing event when a target agent is within the Moore neighbourhood of the pickpocket. As stated before, the probability that a pickpocketing attempt is made is dependent on a number of parameters, which are dependent on the agents. 
+The model contains three agents: pickpockets, potential victims and police officers. The environment is a discretised lattice. Each lattice cell can contain one ageny, and a thief agent can attempt a pickpocketing event when a target agent is within the Moore neighbourhood of the pickpocket. As stated before, the probability that a pickpocketing attempt is made is dependent on a number of parameters, which are dependent on the agents.
 
 The movement of the are varied. In general, each agent will move one lattice cell at each time step. If a passer-by is successfully pick-pocketed, their attentiveness will increase, and they will move close to a police officer. A thief moves towards crowds, and if he is caught, he gets more cautious. Police move in patrols up and down the grid.
 
@@ -26,27 +26,33 @@ For the required dependencies, and their versions, see pyproject.toml.
 #### src/base_model.py
 Initialise parameters, create agents, set up the data collector and run the model.
 
+#### src/grid_search.py
+Searches the entire parameter space for all 6 parameters between the bounds.
+This process is heavy to run and will not run on laptops (Linux Ubuntu confirmed/Windows and macOS are not tested). It is specifically written to get the best performance from the Snellius supercomputer.
+
 #### src/heatmap.py
 Create the heat map to visualise where pickpocketing events happen.
 
 #### src/person.py
 Functions for general movement of an agent.
 
-#### src/police.py (TODO maybe: change to src/guardian.py)
-Initialise guardian parameters and compute steps for guardian agents.
+#### src/police.py
+Initialise police parameters and compute steps for police agents.
 
-#### src/victim.py (TODO: change to src/target.py)
+#### src/target.py
 Initialise target parameters and compute steps for target agents.
 
-#### src/thief.py (TODO: src/offender.py)
-Initialise offender parameters and compute steps for offender agents.
+#### src/thief.py
+Initialise thief parameters and compute steps for thief agents.
 
 #### src/server.py
 File for the visualisation of the simulation. It shows the grid per time step and the resulting time-dependent graphs.
 
 #### src/sensitivity_analysis.py
+This file runs the sensitivity analysis and writes the results to sobol_results.txt.
 
-<!-- ### Results and visualisation files -->
+#### src/sensitivity_plot.py
+This file processes the output from the sensitivity analysis and creates the sensitivity plot.
 
 ## Usage
 To install the uv environment, 
